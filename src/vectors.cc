@@ -1,6 +1,7 @@
 #include <cmath>
 
-#include "vector-utils.h"
+#include "vectors.h"
+
 
 // TODO add unit tests
 
@@ -22,6 +23,10 @@ struct Vector add(struct Vector v, double d) {
 
 struct Vector scale(struct Vector v, double scalar) {
     return {v.x * scalar, v.y * scalar, v.z * scalar};
+}
+
+double squaredLength(struct Vector v) {
+    return std::pow(v.x, 2.0) + std::pow(v.y, 2.0) + std::pow(v.z, 2.0);
 }
 
 double length(struct Vector v) {

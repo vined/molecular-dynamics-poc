@@ -1,8 +1,9 @@
 #include <cmath>
 #include <iostream>
 
-#include "vector-utils.h"
+#include "atoms.h"
 #include "parameters.h"
+
 
 // Argon parameters
 #define ARGON_SIGMA 3.4e-8 // ergs
@@ -11,18 +12,6 @@
 
 // Potential energy cutoff
 #define CUTOFF 2.0
-
-struct AtomType {
-    int type;
-    double mass;
-};
-
-struct Atom {
-    struct AtomType type;
-    struct Vector position;
-    struct Vector potential;
-    struct Vector acceleration;
-};
 
 
 // TODO:
@@ -54,7 +43,8 @@ struct Vector getForce(double mass, struct Vector p1, struct Vector p2, double d
 
 
 //Lenard-Jones Potential for van der Waals system
-double getTotalPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
+double getPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
+
     // Todo move these to parent function
     double sigma_squared = pow(ARGON_SIGMA, 2.0),
             cutoff_squared = pow(CUTOFF, 2.0),
@@ -71,80 +61,57 @@ double getTotalPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
         double a_squared = sigma_squared / length_squared, // (sigma / r_ij) ^ 2
                 a_sixth = std::pow(a_squared, 3.0); // (sigma / r_ij) ^ 2
 
-        double inter_potential = repulsion_erg * a_sixth * (a_sixth - 0.5);
-        a1.potential = add(a1.potential, inter_potential);
-        a2.potential = add(a2.potential, -inter_potential);
+        double potential = repulsion_erg * a_sixth * (a_sixth - 0.5);
+        struct Vector pairPotential = scale(diff, potential);
 
-        double rij = length(subtract(a1.position, a2.position)),
-                div = ARGON_SIGMA / rij,
-                repulsion = pow(div, 12.0),
-                attraction = pow(div, 6);
-
-        // update atom potentials
-
+        a1.potential = sum(a1.potential, pairPotential);
+        a2.potential = subtract(a2.potential, pairPotential);
 
         // return system potential
-        return system_repulsion_erg * a_sixth * (a_sixth - 0.5);
+        return system_repulsion_erg * a_sixth * (a_sixth - 1.0);
     }
     return 0;
 }
 
+double getTotalPotentialAndUpdateForEach(std::vector<Atom> atoms) {
+
+    double total_potential_energy = 0.0;
+
+    for (int i = 0; i < atoms.size(); i++) {
+        for (int j = i + 1; j < atoms.size(); j++) {
+            total_potential_energy += getPotentialAndUpdateForEach(atoms[i], atoms[j]);
+        }
+    }
+
+    return total_potential_energy
+}
 
 // Velocity-Verlet method
-// 1. get next acceleration
-// 2. get next velocity
-// 3. get next position
+double getTotalKineticEnergyAndUpdatePositions(std::vector<Atom> atoms, double dt) {
 
-// Newtown equation F = m * a
-struct Vector getNextAcceleration(double mass, struct Vector force) {
-    return scale(force, 1.0 / mass);
-}
+    double half_dt = dt / 2.0,
+            mass_inv = 1 / ARGON_MASS;
 
-// v(t + dt) = v(t) + dt * (a(t) + a(t + dt)) / 2
-struct Vector getNextVelocity(
-        struct Vector velocity,
-        struct Vector accelerationPrev,
-        struct Vector accelerationNext,
-        double dt
-) {
-    return sum(
-            velocity,
-            scale(sum(accelerationPrev, accelerationNext), dt / 2)
-    );
-}
+    // calculate velocity and position for half step
+    for (Atom a : atoms) {
+        a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
+        a.position = sum(a.position, scale(a.velocity, dt));
+    }
 
-// r(t + dt) = r(t) + dt * v(t) + dt^2 * a(t) / 2
-struct Vector getNextPosition(
-        struct Vector position,
-        struct Vector velocity,
-        struct Vector acceleration,
-        double dt
-) {
-    return sum(
-            position,
-            scale(velocity, dt),
-            scale(acceleration, pow(dt, 2.0) / 2)
-    );
-}
+    double total_potential_energy = getTotalPotentialAndUpdateForEach(atoms),
+            total_kinetic_energy = 0;
 
+    for (Atom a : atoms) {
+        a.acceleration = scale(a.potential, mass_inv);
+        a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
+        total_kinetic_energy += squaredLength(a.velocity);
+    }
 
-// Trajectories
-
-double getAcceleration(double dv, double dt) {
-    return dv / dt;
-}
-
-double getVelocity(double dx, double dt) {
-    return dx / dt;
-}
-
-double getTraveledDistance(double a, double dt, double v0, double x0) {
-    return a * std::pow(dt, 2.0) / 2.0 + v0 * dt + x0;
+    return total_kinetic_energy * mass_inv;
 }
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
-
     return 0;
 }
 
