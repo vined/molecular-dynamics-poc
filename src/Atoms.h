@@ -1,7 +1,7 @@
 #ifndef MOLECULAR_DYNAMICS_POC_ATOMS_H
 #define MOLECULAR_DYNAMICS_POC_ATOMS_H
 
-#include "vectors.h"
+#include "Vectors.h"
 
 
 struct AtomType {

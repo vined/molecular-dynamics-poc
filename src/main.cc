@@ -1,8 +1,9 @@
 #include <cmath>
 #include <iostream>
+#include <GL/glut.h>
 
-#include "atoms.h"
-#include "parameters.h"
+#include "Atoms.h"
+#include "Parameters.h"
 
 
 // Argon parameters
@@ -75,19 +76,19 @@ double getPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
 
 double getTotalPotentialAndUpdateForEach(std::vector<Atom> atoms) {
 
-    double total_potential_energy = 0.0;
+    double potential_energy = 0.0;
 
     for (int i = 0; i < atoms.size(); i++) {
         for (int j = i + 1; j < atoms.size(); j++) {
-            total_potential_energy += getPotentialAndUpdateForEach(atoms[i], atoms[j]);
+            potential_energy += getPotentialAndUpdateForEach(atoms[i], atoms[j]);
         }
     }
 
-    return total_potential_energy
+    return potential_energy
 }
 
 // Velocity-Verlet method
-double getTotalKineticEnergyAndUpdatePositions(std::vector<Atom> atoms, double dt) {
+std::pair velocityVerlet(std::vector<Atom> atoms, double dt) {
 
     double half_dt = dt / 2.0,
             mass_inv = 1 / ARGON_MASS;
@@ -98,16 +99,39 @@ double getTotalKineticEnergyAndUpdatePositions(std::vector<Atom> atoms, double d
         a.position = sum(a.position, scale(a.velocity, dt));
     }
 
-    double total_potential_energy = getTotalPotentialAndUpdateForEach(atoms),
-            total_kinetic_energy = 0;
+    double potential_energy = getTotalPotentialAndUpdateForEach(atoms),
+            kinetic_energy = 0;
 
     for (Atom a : atoms) {
         a.acceleration = scale(a.potential, mass_inv);
         a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
-        total_kinetic_energy += squaredLength(a.velocity);
+        kinetic_energy += squaredLength(a.velocity);
     }
 
-    return total_kinetic_energy * mass_inv;
+    kinetic_energy = ARGON_MASS * kinetic_energy / 2.0;
+    return {kinetic_energy, potential_energy};
+}
+
+void runSimulation(Parameters parameters) {
+
+    double time = 0;
+    std::vector<Atom> atoms = parameters.atoms;
+
+    while (time < parameters.max_time) {
+        std::pair energies = velocityVerlet(atoms, parameters.dt);
+    }
+}
+
+void keyboardFn(unsigned char key, int x, int y) {
+    switch (key) {
+        case 'p':
+        case ' ':
+//            pause();
+            glutPostRedisplay();
+            break;
+        case 'x':
+            exit(0);
+    }
 }
 
 int main() {

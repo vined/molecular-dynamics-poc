@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "atoms.h"
-#include "vectors.h"
+#include "Atoms.h"
+#include "Vectors.h"
 
 
 struct Parameters {

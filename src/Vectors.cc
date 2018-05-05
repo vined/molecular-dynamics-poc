@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "vectors.h"
+#include "Vectors.h"
 
 
 // TODO add unit tests
