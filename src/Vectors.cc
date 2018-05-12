@@ -5,6 +5,10 @@
 
 // TODO add unit tests
 
+struct Vector getZeroVector() {
+    return {0, 0, 0};
+}
+
 struct Vector subtract(struct Vector v1, struct Vector v2) {
     return {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
 }

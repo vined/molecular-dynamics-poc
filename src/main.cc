@@ -1,59 +1,59 @@
 #include <cmath>
 #include <iostream>
-#include <GL/glut.h>
 
 #include "Atoms.h"
 #include "Parameters.h"
+#include "Energies.h"
+
+// Boltzman constant erg*K
+const double K_B = 1.38062e-16;
 
 
-// Argon parameters
-#define ARGON_SIGMA 3.4e-8 // ergs
-#define ARGON_MASS 6.6e-23
-#define ARGON_EPSILON 1.66e-14
+double checkBoundary(double position, double box_size) {
+    if (position < 0) {
+        return position - box_size;
+    } else if (position > box_size) {
+        return position - box_size;
+    }
 
-// Potential energy cutoff
-#define CUTOFF 2.0
-
-
-// TODO:
-// - initial state:
-//   - initial velocities depend on temperature
-//   - assign velocities according to Boltzmann or uniform distribution
-//   - total system momentum should be zero
-// - solvent
-
-
-// Forces and Energies
-
-double getKineticEnergy() {
-    // sum(p[i]^2 / 2*m)
-    // is it the same as sum(a[i]^2 / 2*m) ?
-    return 0;
+    return position;
 }
 
-// Total potential energy
-// U = sum[i=1..N]( sum[i=j>i..N]( u( |r_i - r_j| ))
-double getPotentialEnergy() {
-    return 0;
+Vector checkBoundaries(Vector position, double box_size) {
+    return {
+            checkBoundary(position.x, box_size),
+            checkBoundary(position.y, box_size),
+            checkBoundary(position.z, box_size)
+    };
 }
 
-struct Vector getForce(double mass, struct Vector p1, struct Vector p2, double dt) {
-    struct Vector f = {};
-    return f;
+double withBoundary(double pos, double box_size, double cutoff) {
+    return pos > cutoff ? pos : pos + box_size;
 }
 
+double getAxialDistance(double pos1, double pos2, double box_size, double cutoff) {
+    return withBoundary(pos1, box_size, cutoff) - withBoundary(pos2, box_size, cutoff);
+}
+
+Vector getDistance(Vector pos1, Vector pos2, double box_size, double cutoff) {
+
+    return {
+            getAxialDistance(pos1.x, pos2.x, box_size, cutoff),
+            getAxialDistance(pos1.y, pos2.y, box_size, cutoff),
+            getAxialDistance(pos1.z, pos2.z, box_size, cutoff)
+    };
+}
 
 //Lenard-Jones Potential for van der Waals system
-double getPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
+double getPotentialAndUpdateForEach(Atom a1, Atom a2, double box_size, double cutoff) {
 
-    // Todo move these to parent function
-    double sigma_squared = pow(ARGON_SIGMA, 2.0),
-            cutoff_squared = pow(CUTOFF, 2.0),
-            repulsion_erg = 48.0 * ARGON_EPSILON,
-            system_repulsion_erg = 4.0 * ARGON_EPSILON;
+    double sigma_squared = pow(a1.type.sigma, 2.0),
+            cutoff_squared = pow(cutoff, 2.0),
+            repulsion_erg = 48.0 * a1.type.epsilon,
+            system_repulsion_erg = 4.0 * a1.type.epsilon;
 
 
-    struct Vector diff = subtract(a1.position, a2.position);
+    Vector diff = getDistance(a1.position, a2.position, box_size, cutoff);
     double length_squared = std::pow(diff.x, 2.0) + std::pow(diff.y, 2.0) + std::pow(diff.z, 2.0);
 
     if (length_squared < cutoff_squared) {
@@ -63,8 +63,9 @@ double getPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
                 a_sixth = std::pow(a_squared, 3.0); // (sigma / r_ij) ^ 2
 
         double potential = repulsion_erg * a_sixth * (a_sixth - 0.5);
-        struct Vector pairPotential = scale(diff, potential);
+        Vector pairPotential = scale(diff, potential);
 
+        // Update atoms potential energies
         a1.potential = sum(a1.potential, pairPotential);
         a2.potential = subtract(a2.potential, pairPotential);
 
@@ -74,32 +75,39 @@ double getPotentialAndUpdateForEach(struct Atom a1, struct Atom a2) {
     return 0;
 }
 
-double getTotalPotentialAndUpdateForEach(std::vector<Atom> atoms) {
+double getTotalPotentialAndUpdateForEach(std::vector<Atom> atoms, double box_size, double cutoff) {
 
     double potential_energy = 0.0;
 
     for (int i = 0; i < atoms.size(); i++) {
         for (int j = i + 1; j < atoms.size(); j++) {
-            potential_energy += getPotentialAndUpdateForEach(atoms[i], atoms[j]);
+            potential_energy += getPotentialAndUpdateForEach(atoms[i], atoms[j], box_size, cutoff);
         }
     }
 
-    return potential_energy
+    return potential_energy;
 }
 
 // Velocity-Verlet method
-std::pair velocityVerlet(std::vector<Atom> atoms, double dt) {
+Energies velocityVerlet(std::vector<Atom> atoms, double dt, double box_size, double cutoff) {
 
-    double half_dt = dt / 2.0,
-            mass_inv = 1 / ARGON_MASS;
+    // TODO:
+    // 1. Change to normalized parameters
+    // 2. Add neighbours if box is bigger than cut-off*3 radius
+    // 3. Add other forces (electrostatic, angles and ...) and modify to allow use of different atoms
+    // 4. Change to fluctuating charge force field
+
+    double mass = atoms[0].type.mass,
+            half_dt = dt / 2.0,
+            mass_inv = 1 / mass;
 
     // calculate velocity and position for half step
     for (Atom a : atoms) {
         a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
-        a.position = sum(a.position, scale(a.velocity, dt));
+        a.position = checkBoundaries(sum(a.position, scale(a.velocity, dt)), box_size);
     }
 
-    double potential_energy = getTotalPotentialAndUpdateForEach(atoms),
+    double potential_energy = getTotalPotentialAndUpdateForEach(atoms, box_size, cutoff),
             kinetic_energy = 0;
 
     for (Atom a : atoms) {
@@ -108,34 +116,40 @@ std::pair velocityVerlet(std::vector<Atom> atoms, double dt) {
         kinetic_energy += squaredLength(a.velocity);
     }
 
-    kinetic_energy = ARGON_MASS * kinetic_energy / 2.0;
-    return {kinetic_energy, potential_energy};
+    kinetic_energy = mass * kinetic_energy / 2.0;
+
+    return Energies(kinetic_energy, potential_energy);
 }
 
-void runSimulation(Parameters parameters) {
+double getTemperature(double kineticEnergy, long count) {
+    return (2.0 * kineticEnergy) / (3 * K_B * (double) count);
+}
+
+void runSimulation(Parameters params) {
 
     double time = 0;
-    std::vector<Atom> atoms = parameters.atoms;
+    std::vector<Atom> atoms = initializeAtoms(params);
+    std:: vector<Energies> energies;
+    std:: vector<double> temperatures;
 
-    while (time < parameters.max_time) {
-        std::pair energies = velocityVerlet(atoms, parameters.dt);
+    while (time < params.max_time) {
+        time += params.dt;
+        Energies e = velocityVerlet(atoms, params.dt, params.box_size, params.cutoff);
+
+        energies.push_back(e);
+        // TODO: use params.atoms_count
+        temperatures.push_back(getTemperature(e.kinetic, atoms.size()));
+
+        // TODO export energies and positions
     }
 }
 
-void keyboardFn(unsigned char key, int x, int y) {
-    switch (key) {
-        case 'p':
-        case ' ':
-//            pause();
-            glutPostRedisplay();
-            break;
-        case 'x':
-            exit(0);
-    }
-}
+int main(int argc, char *argv[]) {
+    
+    Parameters params = readParameters(argv[1]);
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
+    runSimulation(params);
+    
     return 0;
 }
 

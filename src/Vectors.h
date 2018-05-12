@@ -8,6 +8,8 @@ struct Vector {
     double z;
 };
 
+struct Vector getZeroVector();
+
 struct Vector subtract(struct Vector v1, struct Vector v2);
 
 struct Vector sum(struct Vector v1, struct Vector v2);
