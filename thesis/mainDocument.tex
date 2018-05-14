@@ -1,0 +1,106 @@
+% Kompiuterijos katedros šablonas
+% Template of Department of Computer Science II
+% Versija 1.0 2015 m. kovas [ March, 2015]
+
+\documentclass[a4paper,12pt,fleqn,tikz]{article}
+\input{allPacks}
+
+\newtoggle{inLithuanian}
+%If the report is in Lithuanian, it is set to true; otherwise, change to false
+\settoggle{inLithuanian}{true}
+
+%create file preface.tex for the preface text
+%if preface is needed set to true
+\newtoggle{needPreface}
+\settoggle{needPreface}{false}
+
+\newtoggle{signaturesOnTitlePage}
+\settoggle{signaturesOnTitlePage}{true}
+
+
+\input{macros}
+
+\begin{document}
+    % #1 -report type, #2 - title, #3-7 students, #8 - supervisor
+    \depttitlepage{Magistro tiriamasis darbas}{Poliarizuoto jėgos lauko taikymas molekulinėje dinamikoje}
+    {Edvinas Naraveckas}
+    {}{}{}{}% students 2-5
+    {dr. Tadas Meškauskas}
+
+    \tableofcontents
+
+
+    % Keywords and notations if needed
+    \sectionWithoutNumber{Sutartinis terminų žodynas}{keywords}{
+        MD - molekulinė dinamika (angl. \textit{Molecular dynamics})
+    }
+
+    % Both abstracts
+    \bothabstracts{\input{abstract}}%tex-file of abstract in original language
+    {Polarized force field application in molecular dynamics} %if work is in LT this title should be in English
+    {\input{abstractEN}}%tex-file of abstract in other language
+
+
+    % Introduction section: label is sec:intro
+    \sectionWithoutNumber{\keyWordIntroduction}{intro}
+    \input{introduction.tex}
+
+
+
+    % What is MD
+    \newpage
+    \section{Molekulinė dinamika ir jos taikymai}
+    \label{sec:molecular_dynamics_section}
+    \input{molcularDynamics.tex}
+
+
+
+    % Force field
+    \newpage
+    \section{Jėgos laukai}
+    \label{sec:force_field}
+    \input{forceField.tex}
+
+    \subsection{Poliarizuoti jėgos laukai}
+    \label{sec:polarized_force_fields}
+    \input{polarizedForceFields.tex}
+
+
+    \subsubsection{Fliuktuojančio krūvio jėgos laukas}
+    \label{sec:fluctuating_charge}
+    \include{fluctuatingCharge}
+
+
+
+    % Data
+    \newpage
+    \section{Duomenys}
+    \label{sec:data}
+    Gal MM4MX padės Protein data bank
+
+
+
+    % Algorithm
+    \newpage
+    \section{Algoritmas ir implementacija}
+    \label{sec:algorithm_implementation}
+
+    \subsection{Algoritmas}
+    \label{sec:algorithm}
+
+    \subsection{Implementacija}
+    \label{sec:implementation}
+
+
+
+    %Conclusions section
+    \sectionWithoutNumber{\keyWordConclusions}{conclu}
+    \input{conclusions.tex}
+
+
+    %file literatureSources.bib
+    \referenceSources{literatureSources}
+
+
+
+\end{document}

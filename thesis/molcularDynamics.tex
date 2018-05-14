@@ -1,0 +1,91 @@
+\subsection{Molekulinė dinamika}
+\label{sec:molecular_dynamics}
+
+
+Molekulinė dinamika - tai supaprastintas atomų ir molekulių tarpusavio sąveikos modelis.
+Fiksuotas atomų skaičius sąveikauja uždarame tūryje reminatis klasikine Niutono mechanika,
+nes ji labai gerai atitinka kvantinės mechanikos dėsnius modelio naudojamos temperatūros ir slėgio rėžiuose,
+bet kartu yra greitesnė ir paprastesnė.
+Laikoma, kad sistemos suminė energija simuliacijos metu nekinta.
+Taip pat gali būti fiksuoti slėgis ir temperatūra \cite{hitch}.
+Modeliuojamų atomų skaičius svyruoja nuo kelių šimtų iki keliolikos tūkstančių.
+Kadangi modelis reikalauja daug skaičiavimo resursų (vienas žingsnis yra apie 6N operacijų, kur N yra atomų skaičius),
+simuliacijos nėra ilgos ir žingsniai labai maži (apie vieną femto sekundę), nes su didesniais žingsniais algoritmas tampa nestabilus.
+
+
+--- Todo ---- add space time window from hitch.
+Pairwise additivity N*(N-1)/2 pair potentials.
+Cut off radius 10 - 15 A*(Angstrom unit) or shifted potentials as alternative.
+Peridic boundaties condition, dezutes dydis ne mažesnis nei cutoff radius.
+Nearest neighbours, kurie atnaujinami kad 10-15 žingsnių.
+Suskaidyti celėmis, kurių plotis yra didesnis nei \(r_c\). Taip galima skaičiavimus išskaidyti per kelis kompiuterius ir ieškant naujų kaimynų tereikės patikrinti tik 26-iose celėse esančias daleles.
+
+Evald summation and Evald particle mesh method to reduce to N log N
+
+Do NVE test, p - total momentum should be constant.
+Ekvilibracija - modeliavimas prasideda \(t = 0\) kai pasiekiamas norimas kinetinės energijos lygis (11-hitch).
+Papildomos programos: VMD ir gnuplot, dar gal xfig
+
+
+
+\subsection{Molekulinės dinamikos modelis}
+\label{sec:molecular_dynamics_model}
+
+
+MD simuliaciją sudaro trys dalys: sąveikos modelis (jėgos laukas), modelio sąlygos ir parametrai, pradinės pozicijos ir greičiai.
+
+Pradinės pozicijos gali būti parinktos atsitiktine tvarka, bet tai nėra rekomenduotina, nes turi būti išlaikytas minimalus atstumas tarp dalelių.
+Dažniausiai pozicijos parenkamos pseudo atsitiktine tvarka remiantis empiriniais eksperimentų duomenimis.
+Pradinis greitis nėra toks svarbus, nes jis bus perskaičiuotas jau pirmame žingsnyje ir gali būti parinktas atsitiktine tvarka pagal Gauso skirstinį,
+kad pradinis suminis sistemos momentas \(p\) būtų lygus nuliui.
+
+
+\begin{figure}
+\centering
+
+\usetikzlibrary{shapes.geometric, arrows, arrows.meta, positioning, calc}
+\tikzstyle{block} = [rectangle, draw=black, text width=8cm, text centered]
+\tikzstyle{decision} = [diamond, draw=black, text width=1.7cm, text centered]
+\tikzstyle{arrow} = [thick,->, >=stealth]
+
+    \begin{tikzpicture}[node distance=1cm]
+        \node (init) [block] {Pradinės padėtys ir greičiai};
+        \node (newEnergies) [block, below of=init] {Skaičiuojamos jėgos};
+        \node (update) [block, below of=newEnergies] {Skaičiuojamos naujos padėtys ir greičiai};
+        \node (evaluation) [block, below of=update] {Iteracijos įvertinimas};
+        \node (shouldEnd) [decision, below of=evaluation, yshift=-1.3cm] {Rezultatas pasiektas};
+        \node (end) [block, below of=shouldEnd, yshift=-1.7cm] {Simuliacijos pabaiga};
+
+        \draw [arrow] (init) -- (newEnergies);
+        \draw [arrow] (newEnergies) -- (update);
+        \draw [arrow] (update) -- (evaluation);
+        \draw [arrow] (evaluation) -- (shouldEnd);
+        \draw [arrow] (shouldEnd.east) -| node[pos=0.25, anchor=south] {ne} +(4,0) |- (newEnergies);
+        \draw [arrow] (shouldEnd) -- node[anchor=east] {taip} (end);
+    \end{tikzpicture}
+
+\caption[Simuliacijos ciklas] {Simuliacijos ciklas}
+\label{fig:steps}
+\end{figure}
+
+Diskrečiais laiko žingsniais atliekami žingzniai pavaizduoti iliustracijoje \ref{fig:steps}.
+Po kiekvieno žingsnio suskaičiuojama suminė viso modelio energija.
+Dalelėms susidūrus, dalis energijos virsta šiluma.
+Todėl po kiekvieno ciklo taip pat skaičiuojamas sistemos slėgis ar temperatūra priklausomai nuo modelio tipo.
+Skaičiavimai baigiasi kai pasiekiamas norimas rezultatas, pavyzdžiui dalelės pasiekė nustatytą klasterizavimosi lygį,
+arba buvo atliktas norimas žingsnių kiekis.
+
+
+\subsection{Molekulinės dinamikos taikymai}
+\label{sec:molecular_dynamics_applications}
+
+Molekulinė dinamika taikoma naujų medžiagų tyrimuose, nano-technologijose.
+Labai naudinga, kai reikia suprasti procesus, vykstančius mikroskopiniame lygyje, kurių neįmanoma ar per sudėtinga tiesiogiai stebėti.
+
+Taip pat dažnai naudojama biochemijoje proteinų ir makro molekulių simuliacijose.
+Tai padeda geriau įvertinti vaistų veikliųjų medžiagų saveiką su tikslinėmis molekulėmis.
+Inter-molekuliniai modeliai leidžia analizuoti ilgųjų molekulių kaip DNR sukinius (folding).
+
+--Todo
+Pridėti info iš Cnm-chap128
+

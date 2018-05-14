@@ -37,5 +37,16 @@ cmake-build-debug
 # Idea
 .idea
 
-# Misc
-docs
+# Docs
+*~
+*.swp
+*.log
+*.out
+*.toc
+*.aux
+*.bbl
+*.blg
+Output
+Output_grep
+
+mainDocument.pdf

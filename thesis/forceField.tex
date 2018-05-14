@@ -1,0 +1,41 @@
+Jėgos laukas yra pagrindinė modelio sudedamoji dalis.
+Jis yra taikomas kiekvienam simuliacijos atomui.
+Nuo jo tikslumo priklauso galutinis rezultatas, bei skaičiavimo trukmė.
+
+\begin{equation} \label{eq:upot}
+    U(r) = U_b(r) + U_W(r) + U_e(r)
+\end{equation}
+
+\begin{multline} \label{eq:upotdetailed}
+    U(r^N) = \sum\limits_{bonds}{\dfrac {k_i} {2} (l_i - l_{i,0})^2} + \sum\limits_{angles}{\dfrac {k_i} {2} (\theta_i - \theta_{i,0})^2} + \sum\limits_{torsions}{\dfrac {V_n} {2} (1 + cos(n\omega - \gamma))} \\
+  + \sum\limits_{i=1}^N \sum\limits_{j=i+1}^N {\bigg(4\varepsilon_{ij} \bigg[\bigg(\dfrac {\sigma_{ij}} {r_{ij}} \bigg)^12 - \bigg(\dfrac {\sigma_{ij}} {r_ij} \bigg)^6 \bigg] + \dfrac {q_iq_j} {4\pi\sigma_0r_{ij}}} \bigg)
+\end{multline}
+
+Jėgos laukas skaičiuoja kiekvieno atomo sitemoje potencinę energiją pagal formulę \ref{eq:upot}.
+Čia \(r\) yra modelio atomų pozicijos, \(U_b\) - ryšio potencinė energija.
+
+\begin{equation}
+U_W(r) = \sum\limits_{i=1}^N \sum\limits_{i\neq j} {U_{LJ}(r_{ij})}
+\end{equation}
+
+\begin{equation} \label{eq:lj}
+    U_{LJ}(r_{ij}) = 4\varepsilon\Bigg[\bigg(\dfrac \sigma {r_{ij}}\bigg)^{12} - \bigg(\dfrac \sigma {r_{ij}}\bigg)^6\Bigg]
+\end{equation}
+
+\(U_W\) - van der Valso jėgų įtaka, kuri dažniausiai skaičiuojama naudojant Lenard-Jones potencialų formulę \ref{eq:lj}.
+Ji taip pat įtraukia Paulio draudimo principo įtaką.
+
+\begin{equation} \label{eq:coloumb}
+    U_{e}(r) = \sum\limits_{i=1}^N \sum\limits_{i\neq j} {\dfrac{q_i q_j}{r_{ij}}}
+\end{equation}
+
+\(U_e\) - elektrostatinių jėgų potencinė energija skaičiuojama remiantis Kulono formule \ref{eq:coloumb}.
+Čia \(q_i\) ir \(q_j\) elekrostatiniai atomų krūviai, o \(r_{ij}\) yra atstumas tarp jų.
+
+Molekulinės dinamikos simuliacijose dažniausiai naudojamas būtent šis algoritmas \cite{polar}.
+
+Temperatura:
+
+\begin{equation}
+    T(t) = \sum\limits_{i=1}^N {\dfrac {m_i} {N_{f}k_{b}} v_i^2}
+\end{equation}

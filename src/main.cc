@@ -5,7 +5,7 @@
 #include "Parameters.h"
 #include "Energies.h"
 
-// Boltzman constant erg*K
+// Boltzmann constant erg*K
 const double K_B = 1.38062e-16;
 
 

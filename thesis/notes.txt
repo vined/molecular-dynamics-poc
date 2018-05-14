@@ -1,0 +1,6 @@
+Model molecules clumping model.
+Where to find data of experiments with results?
+
+Maybe model water and the protein folding using polarized force fields?
+Use polarised field with flexible bonds
+

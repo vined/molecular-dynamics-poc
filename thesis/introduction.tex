@@ -1,0 +1,21 @@
+Molekulinė dinamika (MD) - tai sąveikų tarp atomų ir molekulių modeliavimo sritis.
+Sąveikos jėgos yra apskaičiuojamos pagrinde remiantis Niutono klasikine mechanika ir termodinamikos dėsniu.
+Modelį sudaro N atomų (arba iš jų sudarytos molekulės) iš tyrimų žinomoje arba atsitiktine tvarka parinktoje konfigūracijoje esančių ribotoje erdvėje.
+Modeliavimas vyksta iteracijomis kurių laiko žingsniai yra labai trumpi - apie vieną femto sekundę
+Toks mažas žingsnis yra reikalingas, nes atomai juda labai greitai.
+Visos simuliacijos trukmė skaičiuojama micro ar nano sekundėmis.
+Ilgesnėse simuliacijose sunku užtikrinti modelio stabilumą.
+
+Pagrindinį vaidmenį MD simuliacijoje atlieka atomo jėgos lauko modelis.
+Atomai traukia kitus atomus Niutono dėsniais paremtomis jėgomis.
+Bet nuo tam tikro atstumo dominuojančia jėga tampa Paulio draudimo principas, kuris neleidžia atomams kirstis.
+Jėgos lauko modelio tikslas kuo geriau atkartoti šias sąveikas, bet taip pat, neapkrauti procesoriaus skaičiavimais, kurie turi mažai įtakos galutiniam rezultatui.
+Vis tik nauji tyrimai rodo, kad standartiniai jėgos laukai yra pakankamai netikslūs ir tam tikrose situacijose jų rezultatai stipriai skiriasi nuo empirinių.
+
+Pingant skaičiuojamajai galiai, galima naudoti tikslesnius modelius, kurie įtraukia daugiau sąveikų į skaičiavimus.
+Poliarizuoti jėgos laukai yra vienas iš tokių tikslumo problemos sprendimo būdų.
+Jie įvertina aplinkos įtaką atomo ar molekulės elektrostatiniam krūviui.
+Nors ši sąveika yra dešimtis kartų mažesnė už atomų traukos ir stūmos jėgas, simuliacijos, įvertinančios atomų poliarizaciją yra tikslesnės.
+Tai labiausiai aktualu modeliuose, kuriuose tarpusavyje sąveikauja molekulės arba didelę įtaką daro ne kovalentinis ryšys (pvz. vandenilinis ryšys).
+
+Molekulinė dinamika taikoma cheminėje fizikoje, medžiagų tyrimuose ir bio-molekulių modeliavime vaistų pramonėje.

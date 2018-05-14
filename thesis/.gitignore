@@ -1,0 +1,15 @@
+.idea/
+*.iml
+
+*~
+*.swp
+*.log
+*.out
+*.toc
+*.aux
+*.bbl
+*.blg
+Output
+Output_grep
+
+mainDocument.pdf
