@@ -14,7 +14,9 @@ Parameters parseParams(std::vector<std::string> argv) {
             std::stof(argv[4]), // sigma
             std::stof(argv[5]), // mass
             std::stof(argv[6]), // epsilon
-            std::stof(argv[7])  // energy cut-off
+            std::stof(argv[7]), // energy cut-off
+            std::stof(argv[8]), // unit box size
+            std::stol(argv[9])  // atoms positions export interval
     );
 }
 

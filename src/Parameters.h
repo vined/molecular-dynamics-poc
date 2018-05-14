@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 
-#include "Atoms.h"
 #include "Vectors.h"
 
 
@@ -22,6 +21,7 @@ struct Parameters {
     double epsilon; // epsilon in e-14
     double cutoff; // energy cut-off
     double unit_size; // temporary: atoms unit box size
+    long pos_export_interval; // atoms positions export interval
 
 
     Parameters(
@@ -31,10 +31,11 @@ struct Parameters {
             long _atoms_cnt,
 
             double _sigma, // nano ergs (e-9)
-            double _mass, // e-23 grams
-            double _epsilon, // e-14
-            double _cutoff,
-            double _unit_size
+            double _mass, // e-26 grams
+            double _epsilon, // e-21
+            double _cutoff, //nanometers (e-9)
+            double _unit_size,
+            long _pos_export_interval
     ) {
         dt = _dt * pow(10, -15);
         max_time = _max_time * pow(10, -9);
@@ -42,10 +43,11 @@ struct Parameters {
         atoms_cnt = _atoms_cnt;
 
         sigma = _sigma * pow(10, -9);
-        mass = _mass * pow(10, -23);
-        epsilon = _epsilon * pow(10, -14);
-        cutoff = _cutoff;
+        mass = _mass * pow(10, -26);
+        epsilon = _epsilon * pow(10, -21);
+        cutoff = _cutoff * pow(10, -9);
         unit_size = _unit_size * pow(10, -9);
+        pos_export_interval = _pos_export_interval;
     }
 
 };
