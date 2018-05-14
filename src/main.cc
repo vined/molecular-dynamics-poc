@@ -3,6 +3,7 @@
 
 #include "Atoms.h"
 #include "Energies.h"
+#include "Parameters.h"
 #include "StepResult.h"
 #include "utils/OutputUtils.h"
 
@@ -68,7 +69,6 @@ StepResult getPotentialAndUpdateForEach(Atom a1, Atom a2, double box_size, doubl
 
         double potential = repulsion_erg * a_sixth * (a_sixth - 0.5) / length_squared;
         Vector pairPotential = scale(diff, potential);
-//        std::cout << "Lenght^2 " << length_squared << " Pot " << potential << " diff-x " << diff.x << " Pair potential-x " << pairPotential.x << std::endl;
 
         // Update atoms potential energies
         a1.potential = sum(a1.potential, pairPotential);
@@ -90,10 +90,6 @@ double getTotalPotentialAndUpdateForEach(std::vector<Atom> *atoms, double box_si
             potential_energy += sr.potentialEnergy;
             (*atoms)[i] = sr.a1;
             (*atoms)[j] = sr.a2;
-
-            if (i == 0 && j == i+1) {
-//                std::cout << "Potential " << sr.a1.potential.x << std::endl;
-            }
         }
     }
 
@@ -104,10 +100,12 @@ double getTotalPotentialAndUpdateForEach(std::vector<Atom> *atoms, double box_si
 Energies velocityVerlet(std::vector<Atom> *atoms, double dt, double box_size, double cutoff) {
 
     // TODO:
-    // 1. Change to normalized parameters
+    // 0. Add VMD scripts
+    // 1. Initialize random velocities
     // 2. Add neighbours if box is bigger than cut-off*3 radius
     // 3. Add other forces (electrostatic, angles and ...) and modify to allow use of different atoms
     // 4. Change to fluctuating charge force field
+    // 5. Add MPI
 
     double mass = (*atoms)[0].type.mass,
             n = (*atoms).size(),
@@ -119,9 +117,6 @@ Energies velocityVerlet(std::vector<Atom> *atoms, double dt, double box_size, do
         Atom a = (*atoms)[i];
         a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
         a.position = checkBoundaries(sum(a.position, scale(a.velocity, dt)), box_size);
-        if (i == 0) {
-//            std::cout << "Poz " << vectorToString(a.position) << " Vel " << vectorToString(a.velocity) << " Acc " << vectorToString(a.acceleration) << std::endl;
-        }
         (*atoms)[i] = a;
     }
 
@@ -131,9 +126,6 @@ Energies velocityVerlet(std::vector<Atom> *atoms, double dt, double box_size, do
     for (int i = 0; i < n; i++) {
         Atom a = (*atoms)[i];
         a.acceleration = scale(a.potential, mass_inv);
-        if (i == 0) {
-//            std::cout << "Poz " << a.position.x << " Vel " << a.velocity.x << " Pot " << a.potential.x << " Acc " << a.acceleration.x << std::endl;
-        }
         a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
         (*atoms)[i] = a;
         kinetic_energy += squaredLength(a.velocity);
@@ -148,12 +140,10 @@ double getTemperature(double kineticEnergy, long count) {
     return (2.0 * kineticEnergy) / (3 * K_B * (double) count);
 }
 
-void runSimulation(Parameters params) {
+void runSimulation(Parameters params, std::vector<Atom> atoms) {
 
     double time = 0;
     long i = 0;
-    std::vector<Atom> atoms = initializeAtoms(params);
-    std::cout << "Initialized " << atoms.size() << " atoms" << std::endl;
 
     std::vector<std::vector<double>> energies;
     std::vector<double> kinetic;
@@ -196,11 +186,15 @@ void runSimulation(Parameters params) {
 int main(int argc, char *argv[]) {
 
     std::cout.precision(15);
-    std::cout << "Reading parameters" << std::endl;
+    std::cout << "Reading parameters..." << std::endl;
     Parameters params = readParameters(argv[1]);
 
+    std::cout << "Reading atoms..." << std::endl;
+    std::vector<Atom> atoms = readAtomsData(params, argv[2]);
+    std::cout << "Initialized " << atoms.size() << " atoms" << std::endl;
+
     std::cout << "Running simulation" << std::endl;
-    runSimulation(params);
+    runSimulation(params, atoms);
     
     return 0;
 }

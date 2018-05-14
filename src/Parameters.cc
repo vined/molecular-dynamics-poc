@@ -9,14 +9,12 @@ Parameters parseParams(std::vector<std::string> argv) {
             std::stof(argv[0]), // dt
             std::stof(argv[1]), // max time
             std::stof(argv[2]), // box size
-            std::stol(argv[3]), // atoms count
 
-            std::stof(argv[4]), // sigma
-            std::stof(argv[5]), // mass
-            std::stof(argv[6]), // epsilon
-            std::stof(argv[7]), // energy cut-off
-            std::stof(argv[8]), // unit box size
-            std::stol(argv[9])  // atoms positions export interval
+            std::stof(argv[3]), // sigma
+            std::stof(argv[4]), // mass
+            std::stof(argv[5]), // epsilon
+            std::stof(argv[6]), // energy cut-off
+            std::stol(argv[7])  // atoms positions export interval
     );
 }
 
@@ -50,7 +48,7 @@ Parameters readParameters(std::string fileName) {
 
     std::ifstream paramsFile = openFile(fileName);
     std::string line;
-    std::vector <std::string> params;
+    std::vector<std::string> params;
 
     while (getline(paramsFile, line)) {
 
@@ -64,3 +62,58 @@ Parameters readParameters(std::string fileName) {
     return parseParams(params);
 }
 
+std::vector<std::string> splitBySpace(std::string atomData) {
+
+    std::string delimiter = " \t";
+    std::vector<std::string> data;
+
+    std::size_t pos = 0;
+    while ((pos = atomData.find_first_of(delimiter)) != std::string::npos) {
+        data.push_back(atomData.substr(0, pos));
+        atomData.erase(0, pos + 1);
+    }
+    data.push_back(atomData);
+    return data;
+}
+
+Atom parseAtom(std::string atomData, AtomType atomType) {
+
+    std::vector<std::string> params = splitBySpace(atomData);
+
+    return Atom(atomType, {
+            std::stof(params[1]) * pow(10, -9),
+            std::stof(params[2]) * pow(10, -9),
+            std::stof(params[3]) * pow(10, -9),
+    });
+}
+
+std::vector<Atom> parseAtoms(std::vector<std::string> lines, AtomType atomType) {
+    std::vector<Atom> atoms;
+
+    for (std::string line : lines) {
+        atoms.push_back(parseAtom(line, atomType));
+    }
+
+    return atoms;
+}
+
+std::vector<Atom> readAtomsData(Parameters params, std::string fileName) {
+
+    std::ifstream paramsFile = openFile(fileName);
+
+    std::string line;
+    std::vector<std::string> lines;
+
+    while (getline(paramsFile, line)) {
+        lines.push_back(line);
+    }
+
+    AtomType atomType = {
+            "Ar",
+            params.mass,
+            params.sigma,
+            params.epsilon
+    };
+
+    return parseAtoms(lines, atomType);
+}

@@ -1,14 +1,11 @@
 # delta t - time step size in femto seconds (~10fs)
-0.1
+5
 
 # maximum simulation time in nano seconds (1 - 10ns)
-0.00002
+0.02
 
 # model box size in nano meters (1 - 10nm) should be > 2*R-cut
-1
-
-# atoms count (100 - 1M) // unused for now
-100
+10
 
 # sigma in nano meters (for argon 3.4e-10)
 0.34
@@ -20,10 +17,7 @@
 1.65
 
 # energy cut-off R-cut nano meters
-0.5
-
-# atoms unit box dimension in nano meters
-0.34
+2.0
 
 # atoms positions export interval
-1
+5

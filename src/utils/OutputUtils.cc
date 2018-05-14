@@ -9,7 +9,7 @@
 #define OUTPUT_DIR "./out/"
 #define PRECISION 15
 
-const double nmToAngst = 10e10;
+const double nmToAngst = 1e10;
 
 std::string vectorToString(Vector v) {
     return std::to_string(v.x) + " " + std::to_string(v.y) + " " + std::to_string(v.z);

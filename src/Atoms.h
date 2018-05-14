@@ -2,10 +2,9 @@
 #define MOLECULAR_DYNAMICS_POC_ATOMS_H
 
 #include <vector>
+#include <string>
 
 #include "Vectors.h"
-#include "Parameters.h"
-
 
 struct AtomType {
     std::string symbol;
@@ -32,7 +31,5 @@ struct Atom {
         acceleration = getZeroVector();
     }
 };
-
-std::vector<Atom> initializeAtoms(Parameters params);
 
 #endif //MOLECULAR_DYNAMICS_POC_ATOMS_H
