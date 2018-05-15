@@ -1,0 +1,7 @@
+menu main on
+
+display resize 600 600
+
+mol default style VDW
+
+set auto_path ./vmd
