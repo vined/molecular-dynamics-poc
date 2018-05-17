@@ -1,0 +1,258 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.20 of 2017/10/04
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage{graphicx}
+\usepackage[utf8x]{inputenc}
+\usepackage[L7x]{fontenc}
+\usepackage{amsmath}
+\usepackage{tikz}
+
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following line
+% to display URLs in blue roman font according to Springer's eBook style:
+% \renewcommand\UrlFont{\color{blue}\rmfamily}
+
+\begin{document}
+%
+\title{Poliarizuoto jėgos lauko taikymas molekulinėje dinamikoje}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Edvinas Naraveckas}
+%
+\authorrunning{E. Naraveckas}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{Vilnius University, Vilnius, Lithuania}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+Šiame darbe tiriama poliariarizuoto jėgos lauko modelio įtaka molekulinės dinamikos simuliacijose.
+Bio molekulių modeliavime labiausiai paplitę supaprastinti jėgos laukai kurie naudoja Kulono dėsnį atomų elektrostatinės sąveikos įvertinimui.
+Atomams yra priskiriamas vienodo stiprumo elektrostatinis krūvis, nepriklausomai nuo juos supančios aplinkos.
+Naudojant tokius jėgos laukus galima atlikti simuliacijas su dideliu atomų skaičiumi, bet nukenčia tikslumas modeliuojant molekulių tarpusavio saveikas.
+Tai aktualu didelių molekulių, kaip proteinai, lipidai, simuliacijose, kai modeliuojamas molekulės formos kitimas (folding).
+Ir modeliuose, kur dipolinis momentas stipriai keičiasi, kaip vandens perėjimai tarp būsenų.
+Poliarizuoti jėgos laukai sprendžia šią problemą.
+Šiame darbe tirama fliuktuojančio krūvio metodo įtaka molekulių klasterizavimosi modeliams.
+
+\keywords{Molekulinė dinamika  \and Poliarizuotas jėgos laukos \and Fliuktuojačio krūvio jėgos laukas.}
+\end{abstract}
+%
+%
+%
+\section{Įvadas}
+
+Molekulinė dinamika (MD) - tai sąveikų tarp atomų ir molekulių modeliavimo sritis.
+Sąveikos jėgos yra apskaičiuojamos pagrinde remiantis Niutono klasikine mechanika ir termodinamikos dėsniu.
+Modelį sudaro N atomų (arba iš jų sudarytos molekulės) iš tyrimų žinomoje arba atsitiktine tvarka parinktoje konfigūracijoje esančių ribotoje erdvėje.
+Modeliavimas vyksta iteracijomis kurių laiko žingsniai yra labai trumpi - apie vieną femto sekundę
+Toks mažas žingsnis yra reikalingas, nes atomai juda labai greitai.
+Visos simuliacijos trukmė skaičiuojama micro ar nano sekundėmis.
+Ilgesnėse simuliacijose sunku užtikrinti modelio stabilumą.
+
+Pagrindinį vaidmenį MD simuliacijoje atlieka atomo jėgos lauko modelis.
+Atomai traukia kitus atomus Niutono dėsniais paremtomis jėgomis.
+Bet nuo tam tikro atstumo dominuojančia jėga tampa Paulio draudimo principas, kuris neleidžia atomams kirstis.
+Jėgos lauko modelio tikslas kuo geriau atkartoti šias sąveikas, bet taip pat, neapkrauti procesoriaus skaičiavimais, kurie turi mažai įtakos galutiniam rezultatui.
+Vis tik nauji tyrimai rodo, kad standartiniai jėgos laukai yra pakankamai netikslūs ir tam tikrose situacijose jų rezultatai stipriai skiriasi nuo empirinių.
+
+Pingant skaičiuojamajai galiai, galima naudoti tikslesnius modelius, kurie įtraukia daugiau sąveikų į skaičiavimus.
+Poliarizuoti jėgos laukai yra vienas iš tokių tikslumo problemos sprendimo būdų.
+Jie įvertina aplinkos įtaką atomo ar molekulės elektrostatiniam krūviui.
+Nors ši sąveika yra dešimtis kartų mažesnė už atomų traukos ir stūmos jėgas, simuliacijos, įvertinančios atomų poliarizaciją yra tikslesnės.
+Tai labiausiai aktualu modeliuose, kuriuose tarpusavyje sąveikauja molekulės arba didelę įtaką daro ne kovalentinis ryšys (pvz. vandenilinis ryšys).
+
+
+\section{Molekulinė dinamika ir jos taikymai}
+
+\subsection{Molekulinė dinamika}
+
+Molekulinė dinamika - tai supaprastintas atomų ir molekulių tarpusavio sąveikos modelis.
+Fiksuotas atomų skaičius sąveikauja uždarame tūryje reminatis klasikine Niutono mechanika,
+nes ji labai gerai atitinka kvantinės mechanikos dėsnius modelio naudojamos temperatūros ir slėgio rėžiuose,
+bet kartu yra greitesnė ir paprastesnė.
+Laikoma, kad sistemos suminė energija simuliacijos metu nekinta.
+Taip pat gali būti fiksuoti slėgis ir temperatūra \cite{ref_molmod}.
+Modeliuojamų atomų skaičius svyruoja nuo kelių šimtų iki keliolikos tūkstančių.
+Kadangi modelis reikalauja daug skaičiavimo resursų (vienas žingsnis yra apie 6N operacijų, kur N yra atomų skaičius),
+simuliacijos nėra ilgos ir žingsniai labai maži (apie vieną femto sekundę), nes su didesniais žingsniais algoritmas tampa nestabilus.
+
+
+\subsection{Molekulinės dinamikos taikymai}
+
+Molekulinė dinamika taikoma naujų medžiagų tyrimuose, nano-technologijose, cheminėje fizikoje.
+
+Taip pat dažnai naudojama biochemijoje proteinų ir makro molekulių simuliacijose.
+Tai padeda geriau įvertinti vaistų veikliųjų medžiagų saveiką su tikslinėmis molekulėmis.
+Inter-molekuliniai modeliai leidžia analizuoti ilgųjų molekulių kaip DNR sukinius (folding).
+
+Molekulinė dinamika yra vienintelis būdas suprasti molekulių judėjimą, kai reikia suprasti procesus,
+vykstančius mikroskopiniame lygyje, kurių neįmanoma ar per sudėtinga tiesiogiai stebėti~\cite{ref_art}.
+
+
+\section{Molekulinės dinamikos modelis}
+
+MD simuliaciją sudaro trys dalys: sąveikos modelis (jėgos laukas), modelio sąlygos ir parametrai, pradinės pozicijos ir greičiai.
+
+Pradinės pozicijos gali būti parinktos atsitiktine tvarka, bet tai nėra rekomenduotina, nes turi būti išlaikytas minimalus atstumas tarp dalelių.
+Dažniausiai pozicijos parenkamos pseudo atsitiktine tvarka remiantis empiriniais eksperimentų duomenimis.
+Pradinis greitis nėra toks svarbus, nes jis bus perskaičiuotas jau pirmame žingsnyje ir gali būti parinktas atsitiktine tvarka pagal Gauso skirstinį,
+kad pradinis suminis sistemos momentas \(p\) būtų lygus nuliui.
+
+\begin{figure}
+    \centering
+
+    \usetikzlibrary{shapes.geometric, arrows, arrows.meta, positioning, calc}
+    \tikzstyle{block} = [rectangle, draw=black, text width=8cm, text centered]
+    \tikzstyle{decision} = [diamond, draw=black, text width=1.7cm, text centered]
+    \tikzstyle{arrow} = [thick,->, >=stealth]
+
+    \begin{tikzpicture}[node distance=1cm]
+        \node (init) [block] {Pradinės padėtys ir greičiai};
+        \node (newEnergies) [block, below of=init] {Skaičiuojamos jėgos};
+        \node (update) [block, below of=newEnergies] {Skaičiuojamos naujos padėtys ir greičiai};
+        \node (evaluation) [block, below of=update] {Iteracijos įvertinimas};
+        \node (shouldEnd) [decision, below of=evaluation, yshift=-1.3cm] {Rezultatas pasiektas};
+        \node (end) [block, below of=shouldEnd, yshift=-1.7cm] {Simuliacijos pabaiga};
+
+        \draw [arrow] (init) -- (newEnergies);
+        \draw [arrow] (newEnergies) -- (update);
+        \draw [arrow] (update) -- (evaluation);
+        \draw [arrow] (evaluation) -- (shouldEnd);
+        \draw [arrow] (shouldEnd.east) -| node[pos=0.25, anchor=south] {ne} +(4,0) |- (newEnergies);
+        \draw [arrow] (shouldEnd) -- node[anchor=east] {taip} (end);
+    \end{tikzpicture}
+
+    \caption[Simuliacijos ciklas] {Simuliacijos ciklas}
+    \label{fig:steps}
+\end{figure}
+
+Diskrečiais laiko tarpais atliekami žingsniai pavaizduoti iliustracijoje \ref{fig:steps}.
+Po kiekvieno žingsnio suskaičiuojama suminė viso modelio energija.
+Dalelėms susidūrus, dalis energijos virsta šiluma.
+Todėl po kiekvieno ciklo taip pat skaičiuojamas sistemos slėgis ar temperatūra priklausomai nuo modelio tipo.
+Skaičiavimai baigiasi kai pasiekiamas norimas rezultatas, pavyzdžiui dalelės pasiekė nustatytą klasterizavimosi lygį,
+arba buvo atliktas norimas žingsnių kiekis.
+
+
+\subsection{Ekvilibracija}
+
+Dėl pradinių atsitiktinių parametrų dažniausiai sistema turi per didelį potencinės energijos kiekį.
+Perteklinė potencinė energija laikui bėgant virsta kinetine, kuri kelia sistemos temperatūrą.
+Norint sumažinti temperatūrą reikia sumažinti dalelių greičius.
+Modeliavimo metu tai daroma keletą kartų kol sistema nusistovi ir pasiekamas norimas kinetinės energijos kiekis.
+Tik tada prasideda simuliacija \(t = 0\)~\cite{ref_hitch}.
+
+
+\subsection{Periodinių ribų sąlyga}
+
+Retai aktualu kaip dalelės saveikauja su reliomis ribomis, kaip talpa kurioje jos yra, ar sąlytis su kita medžiaga.
+Todėl dalelių sąveikos modeliuojamos uždaroje erdvėje kurią supa kita labai panaši erdvė.
+Tai pasiekiama naudojan periodines ribas. T.y. dalelės, kurios išeina pro vieną modeliuojamos erdvės pusę,
+yra grąžinamos atgal pro priešingą.
+Taip pat, skaičiuojant saveikų jėgas yra įvertinama ir kitoje pusėje esančių dalelių įtaka.
+
+
+\section{Jėgos laukas}
+\label{ref_force_field}
+
+Jėgos laukas yra pagrindinė modelio sudedamoji dalis.
+Jis yra taikomas kiekvienam simuliacijoje dalyvaujančiam atomui.
+Nuo jo tikslumo priklauso galutinis rezultatas, bei skaičiavimo trukmė.
+
+\begin{equation} \label{eq:upot}
+    U(r) = U_b(r) + U_W(r) + U_e(r)
+\end{equation}
+
+Jėgos laukas skaičiuoja kiekvieno atomo sitemoje potencinę energiją pagal formulę \ref{eq:upot}.
+Čia \(r\) yra modelio atomų pozicijos, \(U_b\) - sąryšio potencinė energija.
+
+\begin{equation}
+    U_W(r) = \sum\limits_{i=1}^N \sum\limits_{i\neq j} {U_{LJ}(r_{ij})}
+\end{equation}
+
+\begin{equation} \label{eq:lj}
+    U_{LJ}(r_{ij}) = 4\varepsilon\Bigg[\bigg(\dfrac \sigma {r_{ij}}\bigg)^{12} - \bigg(\dfrac \sigma {r_{ij}}\bigg)^6\Bigg]
+\end{equation}
+
+\(U_W\) - van der Valso jėgų įtaka, kuri dažniausiai skaičiuojama naudojant Lenard-Jones potencialų formulę \ref{eq:lj}.
+Ji taip pat įtraukia Paulio draudimo principo įtaką.
+
+\begin{equation} \label{eq:coloumb}
+    U_{e}(r) = \sum\limits_{i=1}^N \sum\limits_{i\neq j} {\dfrac{q_i q_j}{r_{ij}}}
+\end{equation}
+
+\(U_e\) - elektrostatinių jėgų potencinė energija skaičiuojama remiantis Kulono formule \ref{eq:coloumb}.
+Čia \(q_i\) ir \(q_j\) elekrostatiniai atomų krūviai, o \(r_{ij}\) yra atstumas tarp jų.
+
+Molekulinės dinamikos simuliacijose dažniausiai naudojamas būtent šis algoritmas~\cite{polar}.
+
+
+\subsection{Poliarizuoti jėgos laukai}
+
+Dalyje \ref{ref_force_field} aprašytas jėgos laukas turi trūkumų.
+Šis modelis neįvertina aplinkos įtakos polinės molekulės krūvio stiprumui, dėl ko gauti rezultatai gali nesutapti su empiriniais~\cite{polar}.
+
+Poliarizuoti jėgos laukai sprendžia šia problemą įtraukdami kintantį elektrostatinį krūvį į skaičiavimus.
+Vienas iš šių metodų yra fliuktuojantis krūvio jėgos laukas.
+
+
+\subsection{Fliuktuojančio krūvio jėgos laukas}
+
+Skirtingai nuo kitų poliarizuotų jėgos laukų fliuktuojantis krūvis taikomas keliems taškams molekulėje, o ne kiekvienam atomui.
+
+
+Induced dipoles and Drude negali perkelti kruvio, tuo tarpu fliuktuojanti kruvis tą ir daro.
+
+Tik du papildomi parametrai kiekvienam atomui.
+
+r cut-off/shifted force potentials
+
+Mulliken electro-negativity
+
+Absolute hardness
+
+Over-polarization problem
+
+Charge transfers over atomic pairs
+
+ABEEM
+\section{Related work}
+\section{Eksperimentas}
+Papildomos programos: VMD ir gnuplot, dar gal xfig
+\section{Išvados}
+
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+% \bibliographystyle{splncs04}
+% \bibliography{mybibliography}
+%
+\begin{thebibliography}{8}
+    \bibitem{ref_art}
+    Rapaport, D. C.: The art of molecular dynamics simulation, 2nd edn. Cambridge University Press (2004)
+
+    \bibitem{ref_molmod}
+    Leach, A. R.: Molecular modeling, principles and applications, 2nd edn. Prentice hall (2001)
+
+    \bibitem{ref_hitch}
+    Bopp, P. A., Hawlicka, E., Fritzsche, S.: The Hitchhiker’s guide to molecular dynamics. Springer International Publishing (2018)
+
+    \bibitem{ref_pol}
+    Lopes, P. E. M., Roux, B., MacKerell A. D.:
+    Molecular modeling and dynamics studies with explicit inclusion of electronic polarizability: theory and applications Springer-Verlag 2009
+\end{thebibliography}
+\end{document}
