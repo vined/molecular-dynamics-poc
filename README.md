@@ -23,7 +23,7 @@ make
 
 In the same directory run:
 ```bash
-./molecular_dynamics_poc ../params.txt ../atoms.xyz
+./molecular_dynamics_poc ../params.txt ../data/atoms.xyz
 ```
 This will write simulation output to _out_ directory of parent folder.
 
@@ -44,4 +44,10 @@ vmd -nt -e vmd/load.tcl
 
 
 ## TODO
+- Initialize random velocities
+- Add other forces (electrostatic, angles and ...) and modify to allow use of different atoms
+- Add neighbours if box is bigger than cut-off*4 radius
+- Add velocity scaling (equilibration)
+- Change to fluctuating charge force field
+- Add MPI
 - Water polarized model (hitch-13)

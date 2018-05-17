@@ -99,18 +99,14 @@ double getTotalPotentialAndUpdateForEach(std::vector<Atom> *atoms, double box_si
 // Velocity-Verlet method
 Energies velocityVerlet(std::vector<Atom> *atoms, double dt, double box_size, double cutoff) {
 
-    // TODO:
-    // 0. Add VMD scripts
-    // 1. Initialize random velocities
-    // 2. Add neighbours if box is bigger than cut-off*3 radius
-    // 3. Add other forces (electrostatic, angles and ...) and modify to allow use of different atoms
-    // 4. Change to fluctuating charge force field
-    // 5. Add MPI
-
     double mass = (*atoms)[0].type.mass,
             n = (*atoms).size(),
             half_dt = dt / 2.0,
             mass_inv = 1 / mass;
+
+    // todo:
+    // - check if atom is part of neigbouring chain
+    // - eval forces of bonded atoms
 
     // calculate velocity and position for half step
     for (int i = 0; i < n; i++) {

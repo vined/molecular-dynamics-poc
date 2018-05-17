@@ -1,5 +1,5 @@
-# delta t - time step size in femto seconds (~10fs)
-5
+# delta t - time step size in femto seconds (0.5 - 10fs, optimal 2fs)
+2
 
 # maximum simulation time in nano seconds (1 - 10ns)
 0.02
