@@ -185,8 +185,15 @@ int main(int argc, char *argv[]) {
     std::cout << "Reading parameters..." << std::endl;
     Parameters params = readParameters(argv[1]);
 
-    std::cout << "Reading atoms..." << std::endl;
-    std::vector<Atom> atoms = readAtomsData(params, argv[2]);
+    std::vector<Atom> atoms;
+    if (argc > 2) {
+        std::cout << "Reading atoms..." << std::endl;
+        atoms = readAtomsData(params, argv[2]);
+    } else {
+        std::cout << "Initializing atoms..." << std::endl;
+        atoms = initializeAtoms(params);
+    }
+
     std::cout << "Initialized " << atoms.size() << " atoms" << std::endl;
 
     std::cout << "Running simulation" << std::endl;

@@ -4,9 +4,6 @@
 # maximum simulation time in nano seconds (1 - 10ns)
 0.02
 
-# model box size in nano meters (1 - 10nm) should be > 2*R-cut
-10
-
 # sigma in nano meters (for argon 3.4e-10)
 0.34
 
@@ -21,3 +18,6 @@
 
 # atoms positions export interval
 5
+
+# atoms count, only used if atoms configuration file is not provided
+500

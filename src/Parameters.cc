@@ -8,13 +8,12 @@ Parameters parseParams(std::vector<std::string> argv) {
     return Parameters(
             std::stof(argv[0]), // dt
             std::stof(argv[1]), // max time
-            std::stof(argv[2]), // box size
-
-            std::stof(argv[3]), // sigma
-            std::stof(argv[4]), // mass
-            std::stof(argv[5]), // epsilon
-            std::stof(argv[6]), // energy cut-off
-            std::stol(argv[7])  // atoms positions export interval
+            std::stof(argv[2]), // sigma
+            std::stof(argv[3]), // mass
+            std::stof(argv[4]), // epsilon
+            std::stof(argv[5]), // energy cut-off
+            std::stol(argv[6]), // atoms positions export interval
+            std::stol(argv[7])  // atoms count
     );
 }
 
