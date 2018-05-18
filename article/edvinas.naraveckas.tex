@@ -195,13 +195,13 @@ Ji taip pat įtraukia Paulio draudimo principo įtaką.
 \(U_e\) - elektrostatinių jėgų potencinė energija skaičiuojama remiantis Kulono formule \ref{eq:coloumb}.
 Čia \(q_i\) ir \(q_j\) elekrostatiniai atomų krūviai, o \(r_{ij}\) yra atstumas tarp jų.
 
-Molekulinės dinamikos simuliacijose dažniausiai naudojamas būtent šis algoritmas~\cite{polar}.
+Molekulinės dinamikos simuliacijose dažniausiai naudojamas būtent šis algoritmas~\cite{ref_pol}.
 
 
 \subsection{Poliarizuoti jėgos laukai}
 
 Dalyje \ref{ref_force_field} aprašytas jėgos laukas turi trūkumų.
-Šis modelis neįvertina aplinkos įtakos polinės molekulės krūvio stiprumui, dėl ko gauti rezultatai gali nesutapti su empiriniais~\cite{polar}.
+Šis modelis neįvertina aplinkos įtakos polinės molekulės krūvio stiprumui, dėl ko gauti rezultatai gali nesutapti su empiriniais~\cite{ref_pol}.
 
 Poliarizuoti jėgos laukai sprendžia šia problemą įtraukdami kintantį elektrostatinį krūvį į skaičiavimus.
 Vienas iš šių metodų yra fliuktuojantis krūvio jėgos laukas.
@@ -209,28 +209,31 @@ Vienas iš šių metodų yra fliuktuojantis krūvio jėgos laukas.
 
 \subsection{Fliuktuojančio krūvio jėgos laukas}
 
-Skirtingai nuo kitų poliarizuotų jėgos laukų fliuktuojantis krūvis taikomas keliems taškams molekulėje, o ne kiekvienam atomui.
+Šiame tyrime naudojamas fliuktuojančio krūvio jėgos laukas.
+Skirtingai nuo kitų poliarizuotų jėgos laukų fliuktuojantis krūvis taikomas keliems taškams (site) molekulėje, o ne kiekvienam atomui.
+Bet skaičiavimai gali būti atlikti tame pačiame žingsnyje ir nereikalauja papildomų parametrų atomuose.
 
+\begin{multline} \label{eq:fluct_charge}
+    U_{e}(r, q) = \sum\limits_{i=1}^{N_{molec}} \sum\limits_{\alpha=1}^{N_{site}}
+        {\bigg[\chi_{i\alpha}^0 q_{i\alpha} + \dfrac{1} {2} J_{i\alpha i\alpha}^0 q_{i\alpha}^2 \bigg]} \\
+    + \sum\limits_{i=1}^{N_{molec}} \sum\limits_{\alpha=1}^{N_{site}} \sum\limits_{\beta>\alpha}^{N_{site}}
+        {J_{i\alpha i\beta} (r_{i\alpha i\beta}) q_{i\alpha} q_{i\beta}} \\
+    + \sum\limits_{i=1}^{N_{molec}} \sum\limits_{j>i}^{N_{molec}} \sum\limits_{\alpha=1}^{N_{site}} \sum\limits_{\beta>\alpha}^{N_{site}}
+        {J_{i\alpha j\beta} (r_{i\alpha j\beta}) q_{i\alpha} q_{j\beta}}
+\end{multline}
 
-Induced dipoles and Drude negali perkelti kruvio, tuo tarpu fliuktuojanti kruvis tą ir daro.
+Formulė \ref{eq:fluct_charge} pakeičia anksčiau naudotą Kulono formulę \ref{eq:coloumb}.
+Čia \(\chi_{ij}^0\) yra Mulikeno elektroneigiamumas, \(J_{\alpha\alpha}\) - absoliutus kietumas.
+Iš formulės matosi, kad naudojamos tos pačios elektrostatinių krūvių reikšmės kaip ir Kulono dėsnyje,
+bet jų stiprumas jau priklauso nuo aplink esančių krūvių.
 
-Tik du papildomi parametrai kiekvienam atomui.
+\section{Rezultatai}
 
-r cut-off/shifted force potentials
+Dar nėra
 
-Mulliken electro-negativity
-
-Absolute hardness
-
-Over-polarization problem
-
-Charge transfers over atomic pairs
-
-ABEEM
-\section{Related work}
-\section{Eksperimentas}
-Papildomos programos: VMD ir gnuplot, dar gal xfig
 \section{Išvados}
+
+Dar nėra
 
 %
 % ---- Bibliography ----
