@@ -8,4 +8,4 @@ add_executable(molecular_dynamics_poc src/main.cc
         src/Parameters.cc src/Parameters.h
         src/Atoms.cc src/Atoms.h
         src/Energies.cc src/Energies.h
-        src/utils/OutputUtils.cc src/utils/OutputUtils.h src/StepResult.h src/Quaternions.cc src/Quaternions.h)
+        src/utils/OutputUtils.cc src/utils/OutputUtils.h src/StepResult.h src/Quaternions.cc src/Quaternions.h src/LeapFrogResult.h src/utils/FileUtils.cc src/utils/FileUtils.h)

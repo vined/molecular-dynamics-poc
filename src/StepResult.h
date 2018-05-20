@@ -7,6 +7,7 @@
 
 struct StepResult {
     double potentialEnergy;
+    double force;
     Atom a1;
     Atom a2;
 };

@@ -19,7 +19,6 @@ struct Atom {
     struct AtomType type;
     struct Vector position;
     struct Vector velocity;
-    struct Vector potential;
     struct Vector acceleration;
 
     Atom(
@@ -29,11 +28,14 @@ struct Atom {
         type = _type;
         position = _position;
         velocity = getZeroVector();
-        potential = getZeroVector();
         acceleration = getZeroVector();
     }
 };
 
-std::vector<Atom> initializeAtoms(Parameters params);
+std::vector<Atom> initializeAtoms(Parameters params, double *width);
+
+std::vector<Atom> initializeVelocities(std::vector<Atom> atoms, double velocityScale);
+
+std::vector<Atom> readAtomsData(Parameters params, std::string fileName, double *box_size);
 
 #endif //MOLECULAR_DYNAMICS_POC_ATOMS_H

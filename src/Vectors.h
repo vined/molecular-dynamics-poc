@@ -8,21 +8,25 @@ struct Vector {
     double z;
 };
 
-struct Vector getZeroVector();
+Vector getZeroVector();
 
-struct Vector subtract(struct Vector v1, struct Vector v2);
+Vector subtract(Vector v1, Vector v2);
 
-struct Vector sum(struct Vector v1, struct Vector v2);
+Vector sum(Vector v1, Vector v2);
 
-struct Vector sum(struct Vector v1, struct Vector v2, struct Vector v3);
+Vector sum(Vector v1, Vector v2, Vector v3);
 
-struct Vector add(struct Vector v, double d);
+Vector add(Vector v, double d);
 
-struct Vector scale(struct Vector v, double scalar);
+Vector scale(Vector v, double scalar);
 
-double squaredLength(struct Vector v);
+Vector multiply(Vector v1, Vector v2);
 
-double length(struct Vector v);
+double squaredLength(Vector v);
+
+double length(Vector v);
+
+std::pair<double, double> getMinMaxCoordinate(Vector v);
 
 
 #endif //MOLECULAR_DYNAMICS_POC_VECTOR_UTILS_H

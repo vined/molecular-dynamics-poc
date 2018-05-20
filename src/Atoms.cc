@@ -1,9 +1,13 @@
 #include <cmath>
+#include <fstream>
+#include <iostream>
+#include <random>
 
 #include "Atoms.h"
+#include "utils/FileUtils.h"
 
 
-std::vector<Atom> initializeAtoms(Parameters params) {
+std::vector<Atom> initializeAtoms(Parameters params, double *width) {
 
     AtomType atomType = {
             "Ar",
@@ -14,30 +18,109 @@ std::vector<Atom> initializeAtoms(Parameters params) {
 
     std::vector<Atom> atoms;
 
-    double x = 0;
-    double border_length = 1.218 * params.atoms_count;
-    double step_size = border_length / sqrt(params.atoms_count);
-    double half_step = step_size / 2;
+    double half_step = params.density / 2.0;
+    double half_half_step = half_step / 2.0;
+    double x = half_half_step;
 
-    while (x < border_length - half_step) {
+    for (int i = 0; i < params.lattice_count; i++) {
 
         double y = 0;
-        while (y < border_length - half_step) {
+        for (int j = 0; j < params.lattice_count; j++) {
 
             double z = 0;
-            while (z < border_length - half_step) {
-                z += step_size;
-                atoms.push_back(Atom(atomType, {x, y, z}));
+            for (int k = 0; k < params.lattice_count; k++) {
                 atoms.push_back(Atom(atomType, {x + half_step, y + half_step, z + half_step}));
-//                atoms.push_back(Atom(atomType, {x, y, z}));
-//                atoms.push_back(Atom(atomType, {x, y + half, z + half}));
-//                atoms.push_back(Atom(atomType, {x + half, y + half, z}));
-//                atoms.push_back(Atom(atomType, {x + half, y, z + half}));
+                z += params.density;
             }
-            y += step_size;
+            y += params.density;
         }
-        x += step_size;
+        x += params.density;
+    }
+
+    *width = x - half_half_step;
+    return atoms;
+}
+
+std::vector<Atom> initializeVelocities(std::vector<Atom> atoms, double temperature) {
+
+    Vector totalVelocity = getZeroVector();
+    double velocityScale = sqrt(3.0 * (1.0 - (1.0 / atoms.size()) * temperature));
+
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+    std::default_random_engine re;
+
+    for (int i = 0; i < atoms.size(); i++) {
+        atoms[i].velocity = scale({unif(re), unif(re), unif(re)}, velocityScale);
+        totalVelocity = sum(totalVelocity, atoms[i].velocity);
+    }
+
+    Vector velocityReducer = scale(totalVelocity, -1.0 / (double) atoms.size());
+
+    for (int i = 0; i < atoms.size(); i++) {
+        atoms[i].velocity = sum(atoms[i].velocity, velocityReducer);
     }
 
     return atoms;
+}
+
+std::vector<std::string> splitBySpace(std::string atomData) {
+
+    std::string delimiter = " \t";
+    std::vector<std::string> data;
+
+    std::size_t pos = 0;
+    while ((pos = atomData.find_first_of(delimiter)) != std::string::npos) {
+        data.push_back(atomData.substr(0, pos));
+        atomData.erase(0, pos + 1);
+    }
+    data.push_back(atomData);
+    return data;
+}
+
+Atom parseAtom(std::string atomData, AtomType atomType) {
+
+    std::vector<std::string> params = splitBySpace(atomData);
+
+    return Atom(atomType, {
+            std::stof(params[1]),
+            std::stof(params[2]),
+            std::stof(params[3]),
+    });
+}
+
+std::vector<Atom> parseAtoms(std::vector<std::string> lines, AtomType atomType, double *box_size) {
+    std::vector<Atom> atoms;
+
+    for (std::string line : lines) {
+        Atom a = parseAtom(line, atomType);
+        atoms.push_back(a);
+
+        double max = getMinMaxCoordinate(a.position).second;
+        if (max > *box_size) {
+            *box_size = max;
+        }
+    }
+
+    return atoms;
+}
+
+std::vector<Atom> readAtomsData(Parameters params, std::string fileName, double *box_size) {
+
+    std::ifstream paramsFile = openFile(fileName);
+
+    std::string line;
+    std::vector<std::string> lines;
+
+    while (getline(paramsFile, line)) {
+        lines.push_back(line);
+    }
+
+    AtomType atomType = {
+            "Ar",
+            params.mass,
+            params.sigma,
+            params.epsilon
+    };
+
+    return parseAtoms(lines, atomType, box_size);
 }

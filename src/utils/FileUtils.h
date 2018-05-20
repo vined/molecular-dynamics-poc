@@ -1,0 +1,8 @@
+#ifndef MOLECULAR_DYNAMICS_POC_FILEUTILS_H
+#define MOLECULAR_DYNAMICS_POC_FILEUTILS_H
+
+
+std::ifstream openFile(std::string fileName);
+
+
+#endif //MOLECULAR_DYNAMICS_POC_FILEUTILS_H

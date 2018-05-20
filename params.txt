@@ -1,8 +1,11 @@
-# delta t - time step size in femto seconds (0.5 - 10fs, optimal 2fs)
-2
+# delta t - time step size in nano seconds (0.5 - 10fs, optimal 2fs)
+0.001
 
 # maximum simulation time in nano seconds (1 - 10ns)
-0.02
+50.0
+
+# temperature in kelvins
+1.0
 
 # sigma in nano meters (for argon 3.4e-10)
 0.34
@@ -13,11 +16,11 @@
 # epsilon in e-21 J (for argon 1.65e-21)
 1.65
 
-# energy cut-off R-cut nano meters
-2.0
+# data export interval
+10
 
-# atoms positions export interval
-5
+# density in Angstroms, only used if atoms configuration file is not provided
+0.8
 
-# atoms count, only used if atoms configuration file is not provided
-500
+# lattice atoms count, only used if atoms configuration file is not provided
+10

@@ -9,7 +9,7 @@
 #define OUTPUT_DIR "./out/"
 #define PRECISION 15
 
-const double nmToAngst = 1e10;
+const double nmToAngst = 1.0;
 
 std::string vectorToString(Vector v) {
     return std::to_string(v.x) + " " + std::to_string(v.y) + " " + std::to_string(v.z);
@@ -48,8 +48,6 @@ void exportMultiVector(
     std::ofstream dat;
     dat.open(fileName);
     dat.precision(precision);
-
-    dat << "# " << name << std::endl;
 
     dat << "# ";
     for (std::string val : colNames) {
