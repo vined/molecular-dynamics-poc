@@ -13,21 +13,6 @@ Kadangi modelis reikalauja daug skaičiavimo resursų (vienas žingsnis yra apie
 simuliacijos nėra ilgos ir žingsniai labai maži (apie vieną femto sekundę), nes su didesniais žingsniais algoritmas tampa nestabilus.
 
 
---- Todo ---- add space time window from hitch.
-Pairwise additivity N*(N-1)/2 pair potentials.
-Cut off radius 10 - 15 A*(Angstrom unit) or shifted potentials as alternative.
-Peridic boundaties condition, dezutes dydis ne mažesnis nei cutoff radius.
-Nearest neighbours, kurie atnaujinami kad 10-15 žingsnių.
-Suskaidyti celėmis, kurių plotis yra didesnis nei \(r_c\). Taip galima skaičiavimus išskaidyti per kelis kompiuterius ir ieškant naujų kaimynų tereikės patikrinti tik 26-iose celėse esančias daleles.
-
-Evald summation and Evald particle mesh method to reduce to N log N
-
-Do NVE test, p - total momentum should be constant.
-Ekvilibracija - modeliavimas prasideda \(t = 0\) kai pasiekiamas norimas kinetinės energijos lygis (11-hitch).
-Papildomos programos: VMD ir gnuplot, dar gal xfig
-
-
-
 \subsection{Molekulinės dinamikos modelis}
 \label{sec:molecular_dynamics_model}
 
@@ -76,18 +61,24 @@ Skaičiavimai baigiasi kai pasiekiamas norimas rezultatas, pavyzdžiui dalelės 
 arba buvo atliktas norimas žingsnių kiekis.
 
 
+\subsection{Ekvilibracija}
+\label{sec:equilibration}
+Dėl pradinių atsitiktinių parametrų dažniausiai sistema turi per didelį potencinės energijos kiekį.
+Perteklinė potencinė energija laikui bėgant virsta kinetine, kuri kelia sistemos temperatūrą.
+Norint sumažinti temperatūrą reikia sumažinti dalelių greičius.
+Modeliavimo metu tai daroma keletą kartų kol sistema nusistovi ir pasiekamas norimas kinetinės energijos kiekis.
+Tik tada prasideda simuliacija \(t = 0\)~\cite{ref_hitch}.
+
+
 \subsection{Molekulinės dinamikos taikymai}
 \label{sec:molecular_dynamics_applications}
 
-Molekulinė dinamika taikoma naujų medžiagų tyrimuose, nano-technologijose.
-Labai naudinga, kai reikia suprasti procesus, vykstančius mikroskopiniame lygyje, kurių neįmanoma ar per sudėtinga tiesiogiai stebėti.
+Molekulinė dinamika taikoma naujų medžiagų tyrimuose, nano-technologijose, cheminėje fizikoje.
 
 Taip pat dažnai naudojama biochemijoje proteinų ir makro molekulių simuliacijose.
 Tai padeda geriau įvertinti vaistų veikliųjų medžiagų saveiką su tikslinėmis molekulėmis.
 Inter-molekuliniai modeliai leidžia analizuoti ilgųjų molekulių kaip DNR sukinius (folding).
 
---Todo
-Pridėti info iš Cnm-chap128
+Molekulinė dinamika yra vienintelis būdas suprasti molekulių judėjimą, kai reikia suprasti procesus,
+vykstančius mikroskopiniame lygyje, kurių neįmanoma ar per sudėtinga tiesiogiai stebėti~\cite{ref_art}.
 
-MD is unable to compete with lattice based methods because of their far less demanding nature,
-but when it comes to transport phenomena, MD is once again, the only viable method[The art of molecular dynamics simulation, Rapaport]
