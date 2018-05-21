@@ -62,7 +62,7 @@ StepResult getPotentialAndUpdateForEach(Atom a1, Atom a2, double box_size, doubl
         // Temporary variable to speed up calculations
         double len_inv_cubed = std::pow(1.0 / length_squared, 3.0);
 
-        force = 48.0 * len_inv_cubed * (len_inv_cubed - 0.5) / length_squared;
+        force = (48.0 * len_inv_cubed * (len_inv_cubed - 0.5)) / length_squared;
         Vector pairPotential = scale(diff, force);
 
         // Update atoms potential energies
