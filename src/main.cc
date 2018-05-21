@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "Atoms.h"
+#include "Molecules.h"
 #include "Energies.h"
 #include "Parameters.h"
 #include "StepResult.h"
@@ -46,90 +47,124 @@ Vector getDistance(Vector pos1, Vector pos2, double box_size, double cutoff) {
 }
 
 //Lenard-Jones Potential for van der Waals system
-StepResult getPotentialAndUpdateForEach(Atom a1, Atom a2, double box_size, double cutoff) {
+StepResult getPotentialAndUpdateForEach(Molecule m1, Molecule m2, double box_size, double cutoff, double b) {
 
     double cutoff_squared = pow(cutoff, 2.0);
     double result_potential = 0;
     double force = 0;
 
-    Vector diff = getDistance(a1.position, a2.position, box_size, cutoff);
-    double length_squared = std::pow(diff.x, 2.0) + std::pow(diff.y, 2.0) + std::pow(diff.z, 2.0);
+    Vector diff = getDistance(m1.position, m2.position, box_size, cutoff);
+    double length_squared = squaredLength(diff);
 
     std::cout.precision(15);
 
     if (length_squared < cutoff_squared) {
 
-        // Temporary variable to speed up calculations
-        double len_inv_cubed = std::pow(1.0 / length_squared, 3.0);
+        for (int i = 0; i < m1.sites.size(); i++) {
+            for (int j = 0; j < m2.sites.size(); j++) {
+                Site s1 = m1.sites[i];
+                Site s2 = m2.sites[j];
+                int typeSum = s1.type + s2.type;
 
-        force = (48.0 * len_inv_cubed * (len_inv_cubed - 0.5)) / length_squared;
-        Vector pairPotential = scale(diff, force);
+                if (s1.type == s2.type || typeSum == 5) {
 
-        // Update atoms potential energies
-        a1.acceleration = sum(a1.acceleration, pairPotential);
-        a2.acceleration = subtract(a2.acceleration, pairPotential);
+                    Vector site_diff = getDistance(s1.position, s2.position, box_size, cutoff);
+                    double site_length_squared_inv = 1.0 / squaredLength(site_diff);
 
-        // return system potential
-        result_potential = 4.0 * len_inv_cubed * (len_inv_cubed - 1.0) + 1.0;
+                    double site_potential = 0;
+                    double site_force = 0;
+
+                    switch (typeSum) {
+                        case 2:
+                            double site_len_inv_cubed = std::pow(site_length_squared_inv, 3.0);
+                            site_potential = 4.0 * site_len_inv_cubed * (site_len_inv_cubed - 1.0);
+                            site_force = (48.0 * site_len_inv_cubed * (site_len_inv_cubed - 0.5)) * site_length_squared_inv;
+                            break;
+                        case 4:
+                            site_potential = 4.0 * b * std::sqrt(site_length_squared_inv);
+                            site_force = site_potential * site_length_squared_inv;
+                            break;
+                        case 5:
+                            site_potential = -2.0 * b * std::sqrt(site_length_squared_inv);
+                            site_force = site_potential * site_length_squared_inv;
+                            break;
+                        case 6:
+                            site_potential = b * std::sqrt(site_length_squared_inv);
+                            site_force = site_potential * site_length_squared_inv;
+                            break;
+                    }
+
+                    Vector pairPotential = scale(site_diff, site_force);
+                    s1.force = sum(s1.force, pairPotential);
+                    s2.force = subtract(s2.force, pairPotential);
+                    result_potential += site_potential;
+                }
+            }
+        }
     }
-    return {result_potential, force * length_squared, a1, a2};
+
+    return {result_potential, force * length_squared, m1, m2};
 }
 
-LeapFrogResult getTotalPotentialAndUpdateForEach(std::vector<Atom> *atoms, double box_size, double cutoff) {
+LeapFrogResult getTotalPotentialAndUpdateForEach(std::vector<Molecule> *molecules, double box_size, double cutoff) {
 
     double potential_energy = 0.0;
     double forces = 0.0;
 
-    for (int i = 0; i < (*atoms).size(); i++) {
-        for (int j = i + 1; j < (*atoms).size(); j++) {
-            StepResult sr = getPotentialAndUpdateForEach((*atoms)[i], (*atoms)[j], box_size, cutoff);
+    for (int i = 0; i < (*molecules).size(); i++) {
+        for (int j = i + 1; j < (*molecules).size(); j++) {
+            StepResult sr = getPotentialAndUpdateForEach((*molecules)[i], (*molecules)[j], box_size, cutoff);
             potential_energy += sr.potentialEnergy;
             forces += sr.force;
-            (*atoms)[i] = sr.a1;
-            (*atoms)[j] = sr.a2;
+            (*molecules)[i] = sr.m1;
+            (*molecules)[j] = sr.m2;
         }
     }
 
     return {potential_energy, forces};
 }
 
-Energies leapFrog(std::vector<Atom> *atoms, double dt, double box_size, double cutoff, double density) {
+Energies leapFrog(std::vector<Molecule> *molecules, double dt, double box_size, double cutoff, double density) {
 
-    double n = (*atoms).size();
+    double n = (*molecules).size();
     double half_dt = dt / 2.0;
 
-    // todo:
-    // - check if atom is part of neigbouring chain
-    // - eval forces of bonded atoms
-
     for (int i = 0; i < n; i++) {
-        Atom a = (*atoms)[i];
-        a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
-        a.position = applyBoundaries(sum(a.position, scale(a.velocity, dt)), box_size);
-        std::pair<double, double> min_max= getMinMaxCoordinate(a.position);
+        Molecule m = (*molecules)[i];
+        m.velocity = sum(m.velocity, scale(m.acceleration, half_dt));
+        m.position = applyBoundaries(sum(m.position, scale(m.velocity, dt)), box_size);
+        std::pair<double, double> min_max= getMinMaxCoordinate(m.position);
 
         if (min_max.first < 0 || min_max.second > box_size) {
-            Vector p = a.position;
-            std::cout << "\nAtom " << i << " out of bounds (" << p.x << ',' << p.y << ',' << p.z << "), box size: " << box_size << std::endl;
+            Vector p = m.position;
+            std::cout << "\nMolecule " << i << " out of bounds (" << p.x << ',' << p.y << ',' << p.z << "), box size: " << box_size << std::endl;
             throw 100;
         }
 
-        a.acceleration = getZeroVector();
-        (*atoms)[i] = a;
+        // Resetting forces
+        std::vector<Site> zeroedSites;
+        for (Site site : m.sites) {
+            site.force = getZeroVector();
+            zeroedSites.push_back(site);
+        }
+        m.sites = zeroedSites;
+
+        (*molecules)[i] = m;
     }
 
     // calculate velocity and position for half step
-    LeapFrogResult lfResult = getTotalPotentialAndUpdateForEach(atoms, box_size, cutoff);
+    LeapFrogResult lfResult = getTotalPotentialAndUpdateForEach(molecules, box_size, cutoff);
 
     double kinetic_energy = 0;
     for (int i = 0; i < n; i++) {
-        Atom a = (*atoms)[i];
-        a.velocity = sum(a.velocity, scale(a.acceleration, half_dt));
-        (*atoms)[i] = a;
-        kinetic_energy += squaredLength(a.velocity);
+        Molecule m = (*molecules)[i];
+        m.velocity = sum(m.velocity, scale(m.acceleration, half_dt));
+        (*molecules)[i] = m;
+        Vector w = computeAngularVelocities(m);
+        kinetic_energy += dot(inertia, dot(w, w));
     }
 
-    double pressure = density * (kinetic_energy + lfResult.forces) / ((*atoms).size() * 3.0);
+    double pressure = density * (kinetic_energy + lfResult.forces) / ((*molecules).size() * 3.0);
 
     return Energies(
             kinetic_energy / 2.0,
@@ -192,17 +227,14 @@ int main(int argc, char *argv[]) {
     double width = 0.0;
     std::vector<Atom> atoms;
 
-    if (argc > 2) {
-        std::cout << "Reading atoms..." << std::endl;
-        atoms = readAtomsData(params, argv[2], &width);
-    } else {
-        std::cout << "Initializing atoms..." << std::endl;
-        atoms = initializeAtoms(params, &width);
-    }
+    std::cout << "Initializing molecules..." << std::endl;
+    atoms = initializeAtoms(params, &width);
 
-    double cutoff = pow(2.0, 1.0 / 6.0);
+    double cutoff = std::pow(2.0, 1.0 / 6.0);
     std::cout << "Cut-off " << cutoff  << std::endl;
     atoms = initializeVelocities(atoms, params.temperature);
+
+
 
 
     std::cout << "Initialized " << atoms.size() << " atoms" << std::endl;

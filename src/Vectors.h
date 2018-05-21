@@ -22,6 +22,10 @@ Vector scale(Vector v, double scalar);
 
 Vector multiply(Vector v1, Vector v2);
 
+Vector crossProduct(Vector v1, Vector v2);
+
+Vector dot(Vector v1, Vector v2);
+
 double squaredLength(Vector v);
 
 double length(Vector v);

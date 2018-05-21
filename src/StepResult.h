@@ -7,9 +7,10 @@
 
 struct StepResult {
     double potentialEnergy;
+    // Todo probably remove
     double force;
-    Atom a1;
-    Atom a2;
+    Molecule m1;
+    Molecule m2;
 };
 
 #endif //MOLECULAR_DYNAMICS_POC_STEPRESULT_H

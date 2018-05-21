@@ -30,6 +30,12 @@ std::vector<Atom> initializeAtoms(Parameters params, double *width) {
             double z = 0;
             for (int k = 0; k < params.lattice_count; k++) {
                 atoms.push_back(Atom(atomType, {x + half_step, y + half_step, z + half_step}));
+
+//                atoms.push_back(Atom(atomType, {x, y, z}));
+//                atoms.push_back(Atom(atomType, {x + half_half_step, y + half_half_step, z + half_half_step}));
+//                atoms.push_back(Atom(atomType, {x, y + half_step, z + half_step}));
+//                atoms.push_back(Atom(atomType, {x + half_step, y + half_step, z}));
+//                atoms.push_back(Atom(atomType, {x + half_step, y, z + half_step}));
                 z += params.density;
             }
             y += params.density;

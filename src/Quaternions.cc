@@ -32,6 +32,21 @@ Quaternion multiply(Quaternion q1, Quaternion q2) {
     };
 }
 
+std::vector<double> toVector(Quaternion q) {
+    std::vector result;
+
+    result.push_back(q.a);
+    result.push_back(q.b);
+    result.push_back(q.c);
+    result.push_back(q.d);
+
+    return result;
+}
+
+double squareLength(Quaternion q) {
+    return std::pow(q.a, 2.0) + std::pow(q.b, 2.0) + std::pow(q.c, 2.0) + std::pow(q.d, 2.0);
+}
+
 double length(Quaternion q) {
-    return sqrt(std::pow(q.a, 2.0) + std::pow(q.b, 2.0) + std::pow(q.c, 2.0) + std::pow(q.d, 2.0));
+    return sqrt(squareLength(q));
 }
