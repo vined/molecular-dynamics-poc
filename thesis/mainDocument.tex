@@ -32,12 +32,14 @@
 
     % Keywords and notations if needed
     \sectionWithoutNumber{Sutartinis terminų žodynas}{keywords}{
+        Jei ilgesnis nei 10 simbolių ir kartojasi daugiau nei 3 kartus.
+
         MD - molekulinė dinamika (angl. \textit{Molecular dynamics})
     }
 
     % Both abstracts
     \bothabstracts{\input{abstract}}%tex-file of abstract in original language
-    {Polarized force field application in molecular dynamics} %if work is in LT this title should be in English
+    {Polarized Force Field Application in Molecular Dynamics} %if work is in LT this title should be in English
     {\input{abstractEN}}%tex-file of abstract in other language
 
 
@@ -84,6 +86,8 @@
     \newpage
     \section{Implementacija}
     \label{sec:algorithm_implementation}
+    Programavimo kalba: C++
+    Pridėti kodo eilučių skaičių
     Papildomos programos: VMD ir gnuplot, dar gal xfig
 
 
@@ -93,7 +97,11 @@
 
 
     %Conclusions section
-    \sectionWithoutNumber{\keyWordConclusions}{conclu}
+    \sectionWithoutNumber{\keyWordConclusions}{conclusions}
+    \input{conclusions.tex}
+
+    %Conclusions section
+    \sectionWithoutNumber{Ateities tyrimų planas}{futureWork}
     \input{conclusions.tex}
 
 
