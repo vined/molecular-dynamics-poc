@@ -11,7 +11,7 @@
 struct Parameters {
 
     double dt;
-    double max_time;
+    long max_steps;
 
     double temperature;
     double cut_off; // epsilon in e-14
@@ -23,20 +23,30 @@ struct Parameters {
     long adjust_equilibration_temp_interval;
     long equilibration_steps; // how long equilibration should be applied
 
+    long average_h_bonds_over_steps;
+    double hydrogen_bond_threshold_energy;
+    int max_h_bonds_count;
+
     Parameters(
             double _dt,
-            double _max_time,
+            long _max_steps,
+
             double _temperature,
             double _cut_off, // nano ergs (e-9)
             double _density,
             long _lattice_count,
+
             long _pos_export_interval,
             long _adjust_temperature_interval,
             long _adjust_equilibration_temp_interval,
-            long _equilibration_steps
+            long _equilibration_steps,
+
+            long _average_h_bonds_over_steps,
+            double _hydrogen_bond_threshold_energy,
+            int _max_h_bonds_count
     ) {
         dt = _dt;
-        max_time = _max_time;
+        max_steps = _max_steps;
 
         temperature = _temperature;
         cut_off = _cut_off;
@@ -47,8 +57,11 @@ struct Parameters {
         adjust_temperature_interval = _adjust_temperature_interval;
         adjust_equilibration_temp_interval = _adjust_equilibration_temp_interval;
         equilibration_steps = _equilibration_steps;
-    }
 
+        average_h_bonds_over_steps = _average_h_bonds_over_steps;
+        hydrogen_bond_threshold_energy = _hydrogen_bond_threshold_energy;
+        max_h_bonds_count = _max_h_bonds_count;
+    }
 };
 
 Parameters readParameters(std::string fileName);

@@ -5,9 +5,11 @@
 #include <string>
 
 #include "../Atoms.h"
+#include "../Quaternions.h"
 
 
 std::string vectorToString(Vector v);
+std::string quatToString(Quaternion q);
 
 void exportVector(std::string name, std::vector<double> vect, int precision);
 

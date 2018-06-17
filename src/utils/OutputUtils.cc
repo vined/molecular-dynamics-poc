@@ -16,6 +16,10 @@ std::string vectorToString(Vector v) {
     return std::to_string(v.x) + " " + std::to_string(v.y) + " " + std::to_string(v.z);
 }
 
+std::string quatToString(Quaternion q) {
+    return std::to_string(q.a) + " " + std::to_string(q.b) + " " + std::to_string(q.c) + " " + std::to_string(q.d);
+}
+
 void exportVector(std::string name, std::vector<double> vect, int precision) {
 
     std::string fileName = OUTPUT_DIR + name + ".dat";

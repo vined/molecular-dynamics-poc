@@ -30,11 +30,14 @@ struct Molecule {
     Quaternion qAcceleration = getZero();
     Quaternion qAcceleration1 = getZero();
     Quaternion qAcceleration2 = getZero();
+    int hydrogenBonds = 0;
 };
 
 Molecule getWaterMoleculeStub();
 
 std::vector<Molecule> initializeMolecules(Parameters params, Molecule stub, double *velocityScale, double *width);
+
+void resetStepValues(std::vector<Molecule> *molecules);
 
 Vector computeAngularVelocities(Molecule m);
 

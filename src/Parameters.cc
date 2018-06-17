@@ -7,17 +7,21 @@
 Parameters parseParams(std::vector<std::string> argv) {
     return Parameters(
             std::stof(argv[0]), // dt
-            std::stof(argv[1]), // max time
+            std::stol(argv[1]), // max steps
 
             std::stof(argv[2]), // temperature
             std::stof(argv[3]), // cut off
             std::stof(argv[4]), // density
-            std::stol(argv[5]),  // lattice count
+            std::stol(argv[5]), // lattice count
 
             std::stol(argv[6]), // data export interval
             std::stol(argv[7]), // adjust_temperature_interval
             std::stol(argv[8]), // adjust_equilibration_temp_interval
-            std::stol(argv[9])  // equilibration_steps
+            std::stol(argv[9]), // equilibration_steps
+
+            std::stol(argv[10]),  // average h bonds data over steps
+            std::stof(argv[11]),  // hydrogen bonds threshold energy
+            std::stoi(argv[12])   // max h bonds count
     );
 }
 

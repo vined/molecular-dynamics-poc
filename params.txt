@@ -1,8 +1,9 @@
 # delta t - time step size in nano seconds (0.5 - 10fs, optimal 2fs) in reduced units (0.0005 = 8e-16)
-0.0005
+# use 0.0003 for better stability
+0.0003
 
-# maximum simulation time in nano seconds (1 - 10ns)
-50.0
+# maximum simulation steps
+5
 
 # temperature (in reduced units 3.8 = 298K)
 3.8
@@ -13,18 +14,29 @@
 # density in reduced units (0.983 = 3.103 Angstroms)
 0.983
 
-# lattice atoms count
-10
+# lattice atoms count 6
+3
 
 # data export interval
 10
 
 # adjust temperature interval
-5
+1000
 
 # adjust equilibration temperature interval
 5
 
 # equilibration steps
-50
+0
 
+
+# -- Parameters used for hydrogen bonds analysis --
+
+# average hydrogen bonds data of last steps count
+1000
+
+# hydrogen bond threshold energy (possible values -8, -10, -12)
+-8
+
+# max hydrogen bonds count
+8
