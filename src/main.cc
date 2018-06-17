@@ -41,9 +41,9 @@ void checkOutOfBounds(Molecule m, double box_size) {
 
 Vector applyBoundaries(std::vector<Molecule> *molecules, double box_size) {
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
 
         m.position = {
                 applyBoundary(m.position.x, box_size),
@@ -53,7 +53,7 @@ Vector applyBoundaries(std::vector<Molecule> *molecules, double box_size) {
 
         checkOutOfBounds(m, box_size);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -75,23 +75,23 @@ Vector getDistance(Vector pos1, Vector pos2, double box_size, double cutoff) {
 }
 
 //Lenard-Jones Potential for van der Waals system
-StepResult getPotentialAndUpdateForEach(Molecule m1, Molecule m2, double box_size, double cutoff, double b) {
+StepResult getPotentialAndUpdateForEach(Molecule *m1, Molecule *m2, double box_size, double cutoff, double b) {
 
     double cutoff_squared = pow(cutoff, 2.0);
     double result_potential = 0;
     double force = 0;
 
-    Vector diff = getDistance(m1.position, m2.position, box_size, cutoff);
+    Vector diff = getDistance(m1->position, m2->position, box_size, cutoff);
     double length_squared = squaredLength(diff);
 
     std::cout.precision(15);
 
     if (length_squared < cutoff_squared) {
 
-        for (int i = 0; i < m1.sites.size(); i++) {
-            for (int j = 0; j < m2.sites.size(); j++) {
-                Site s1 = m1.sites[i];
-                Site s2 = m2.sites[j];
+        for (int i = 0; i < m1->sites.size(); i++) {
+            for (int j = 0; j < m2->sites.size(); j++) {
+                Site s1 = m1->sites[i];
+                Site s2 = m2->sites[j];
                 int typeSum = s1.type + s2.type;
 
                 if (s1.type == s2.type || typeSum == 5) {
@@ -127,28 +127,25 @@ StepResult getPotentialAndUpdateForEach(Molecule m1, Molecule m2, double box_siz
                     s2.force = subtract(s2.force, pairPotential);
                     result_potential += site_potential;
                 }
-                m1.sites[i] = s1;
-                m2.sites[j] = s2;
+                m1->sites[i] = s1;
+                m2->sites[j] = s2;
             }
         }
     }
 
-    return {result_potential, force * length_squared, m1, m2};
+    return {result_potential, force * length_squared};
 }
 
 StepEnergies calculatePotentials(std::vector<Molecule> *molecules, double box_size, double cutoff) {
 
     double potential_energy = 0.0;
     double forces = 0.0;
-    double b = 0;
 
-    for (int i = 0; i < (*molecules).size(); i++) {
-        for (int j = i + 1; j < (*molecules).size(); j++) {
-            StepResult sr = getPotentialAndUpdateForEach((*molecules)[i], (*molecules)[j], box_size, cutoff, b);
+    for (int i = 0; i < molecules->size(); i++) {
+        for (int j = i + 1; j < molecules->size(); j++) {
+            StepResult sr = getPotentialAndUpdateForEach(*(molecules->[i]), *(molecules->[j]), box_size, cutoff, B);
             potential_energy += sr.potentialEnergy;
             forces += sr.force;
-            (*molecules)[i] = sr.m1;
-            (*molecules)[j] = sr.m2;
         }
     }
 
@@ -158,7 +155,7 @@ StepEnergies calculatePotentials(std::vector<Molecule> *molecules, double box_si
 // Checked
 void normalizeTemperature(std::vector<Molecule> *molecules) {
 
-    double n = (*molecules).size();
+    double n = molecules->size();
     double top = 0;
     double bottom = 0;
 
@@ -171,16 +168,16 @@ void normalizeTemperature(std::vector<Molecule> *molecules) {
     double vDiff = -top/bottom;
 
     for (int i = 0; i < n; i++) {
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         m.acceleration = sum(m.acceleration, scale(m.velocity, vDiff));
         m.qAcceleration = sum(m.qAcceleration, scale(m.qVelocity, vDiff));
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
 void adjustTemperature(std::vector<Molecule> *molecules, double velocityScale) {
     double velocityDiff = 0;
-    long n = (*molecules).size();
+    long n = molecules->size();
     double velocitiesSum = 0;
 
     for (Molecule m : *molecules) {
@@ -188,24 +185,24 @@ void adjustTemperature(std::vector<Molecule> *molecules, double velocityScale) {
         velocitiesSum += dot(m.inertia, w, w);
     }
 
-    velocityDiff = velocityScale / sqrt(velocitiesSum/double(n));
+    velocityDiff = velocityScale / sqrt(velocitiesSum / (double) n);
 
     for (int i = 0; i < n; i++) {
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         m.qVelocity = scale(m.qVelocity, velocityDiff);
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
 void adjustEquilibrationTemperature(std::vector<Molecule> *molecules, long equilibrationInterval, double velocityScale, double accKineticEnergy) {
 
-    long n = (*molecules).size();
+    long n = molecules->size();
     double velocityDiff = velocityScale / sqrt(2.0 * accKineticEnergy / equilibrationInterval);
 
     for (int i = 0; i < n; i++) {
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         m.velocity = scale(m.velocity, velocityDiff);
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -237,39 +234,34 @@ Energies predictorCorrectorStep(
 
     // Calculate measurements
     double kinetic_energy = 0;
-    for (Molecule m : (*molecules)) {
+    for (Molecule m : *molecules) {
         Vector w = computeAngularVelocities(m);
         kinetic_energy += dot(m.inertia, w, w);
     }
 
-    double pressure = density * (kinetic_energy + stepEnergies.forces) / ((*molecules).size() * 3.0);
+    double pressure = density * (kinetic_energy + stepEnergies.forces) / (molecules->size() * 3.0);
 
     return Energies(
-            kinetic_energy / 2.0,
-            stepEnergies.totalPotential,
+            0.5 * kinetic_energy / molecules->size(),
+            stepEnergies.totalPotential / molecules->size(),
             pressure
     );
 }
 
-void runSimulation(Parameters params, std::vector<Molecule> *molecules, double box_size, double cutoff) {
-
-    double velocityScale = std::sqrt(3.0 * (1.0 - (1.0 / (*molecules).size()) * params.temperature));
-    double kineticEnergySum = 0;
+void runSimulation(Parameters params, std::vector<Molecule> *molecules, double box_size, double cutoff, double velocityScale) {
 
     double time = 0.0;
     long i = 0;
-    long n = (*molecules).size();
+    double kineticEnergySum = 0;
 
     std::vector<std::vector<double>> energies;
     std::vector<double> kinetic;
-    std::vector<double> potential;
+    std::vector<double> totalEnergy;
     std::vector<double> pressure;
     energies.push_back(kinetic);
-    energies.push_back(potential);
+    energies.push_back(totalEnergy);
     energies.push_back(pressure);
 
-    std::vector<double> temperatures;
-    std::vector<Vector> positions;
 
     while (time < params.max_time) {
 
@@ -290,11 +282,9 @@ void runSimulation(Parameters params, std::vector<Molecule> *molecules, double b
         }
 
         if (i % params.data_export_interval == 0) {
-            energies[0].push_back(e.kinetic / n);
-            energies[1].push_back(e.potential / n);
-            energies[2].push_back(e.pressure / (n * 3.0));
-
-//            exportAtomsPositions("atoms", atoms);
+            energies[0].push_back(e.kinetic);
+            energies[1].push_back(e.kinetic + e.potential);
+            energies[2].push_back(e.pressure);
             std::cout << ".";
         }
 
@@ -307,11 +297,10 @@ void runSimulation(Parameters params, std::vector<Molecule> *molecules, double b
     std::cout << "Exporting results" << std::endl;
     std::vector<std::string> energiesCols;
     energiesCols.push_back("kinetic");
-    energiesCols.push_back("potential");
+    energiesCols.push_back("totalEnergy");
     energiesCols.push_back("pressure");
 
     exportMultiVector("energies", energiesCols, energies, 15);
-    exportVector("temperature", temperatures, 15);
 }
 
 int main(int argc, char *argv[]) {
@@ -320,23 +309,22 @@ int main(int argc, char *argv[]) {
     std::cout << "Reading parameters..." << std::endl;
     Parameters params = readParameters(argv[1]);
 
-    double width = 0.0;
-    std::vector<Atom> atoms;
-
     std::cout << "Initializing molecules..." << std::endl;
-    atoms = initializeAtoms(params, &width);
 
-    double cutoff = std::pow(2.0, 1.0 / 6.0);
-    std::cout << "Cut-off " << cutoff  << std::endl;
-    atoms = initializeVelocities(atoms, params.temperature);
+    double width = 0.0;
+    double velocityScale = 0.0;
 
+    std::vector<Molecule> molecules = initializeMolecules(
+            params,
+            getWaterMoleculeStub(),
+            &velocityScale,
+            &width
+    );
 
-
-
-    std::cout << "Initialized " << atoms.size() << " atoms" << std::endl;
+    std::cout << "Initialized " << molecules.size() << " molecules" << std::endl;
 
     std::cout << "Running simulation" << std::endl;
-    runSimulation(params, atoms, width, cutoff);
+    runSimulation(params, &molecules, width, params.cut_off, velocityScale);
     
     return 0;
 }

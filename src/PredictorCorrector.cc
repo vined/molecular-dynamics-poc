@@ -80,9 +80,9 @@ void predict(std::vector<Molecule> *molecules, double dt) {
     double wPosition = pow(dt, 2.0) / divisor;
     double wVelocity = dt / divisor;
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
 
         m.positionPrev = m.position;
         m.velocityPrev = m.velocity;
@@ -93,7 +93,7 @@ void predict(std::vector<Molecule> *molecules, double dt) {
         m.acceleration2 = m.acceleration1;
         m.acceleration1 = m.acceleration;
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -102,9 +102,9 @@ void predictQuaternion(std::vector<Molecule> *molecules, double dt) {
     double wPosition = pow(dt, 2.0) / divisor;
     double wVelocity = dt / divisor;
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
 
         m.quaternionPrev = m.quaternion;
         m.qVelocityPrev = m.qVelocity;
@@ -115,7 +115,7 @@ void predictQuaternion(std::vector<Molecule> *molecules, double dt) {
         m.qAcceleration2 = m.qAcceleration1;
         m.qAcceleration1 = m.qAcceleration;
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -124,14 +124,14 @@ void correct(std::vector<Molecule> *molecules, double dt) {
     double wPosition = pow(dt, 2.0) / divisor;
     double wVelocity = dt / divisor;
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
 
         m.position = pcPosition4(m.positionPrev, m.velocityPrev, m.acceleration, m.acceleration1, m.acceleration2, dt, wPosition, correctorPositionCoefs);
         m.velocity = pcVelocity4(m.position, m.positionPrev, m.acceleration, m.acceleration1, m.acceleration2, dt, wVelocity, correctorVelocityCoefs);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -140,13 +140,13 @@ void correctQuaternion(std::vector<Molecule> *molecules, double dt) {
     double wPosition = pow(dt, 2.0) / divisor;
     double wVelocity = dt / divisor;
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
 
         m.quaternion = pcPosition4Quaternion(m.quaternionPrev, m.qVelocityPrev, m.qAcceleration, m.qAcceleration1, m.qAcceleration2, dt, wPosition, correctorPositionCoefs);
         m.qVelocity = pcVelocity4Quaternion(m.quaternion, m.quaternionPrev, m.qAcceleration, m.qAcceleration1, m.qAcceleration2, dt, wVelocity, correctorVelocityCoefs);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }

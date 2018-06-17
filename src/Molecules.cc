@@ -32,15 +32,15 @@ Molecule getWaterMoleculeStub() {
 }
 
 // Checked
-std::vector<Molecule> initializeAngularCoordinates(std::vector<Molecule> *molecules) {
+void initializeAngularCoordinates(std::vector<Molecule> *molecules) {
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
     std::default_random_engine re;
 
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         Vector random = {unif(re), unif(re), unif(re)};
 
         std::vector<double> eAngular;
@@ -50,26 +50,54 @@ std::vector<Molecule> initializeAngularCoordinates(std::vector<Molecule> *molecu
 
         m.quaternion = eulerToQuaternion(eAngular);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
-std::vector<Molecule> initializeAngularVelocities(std::vector<Molecule> *molecules, Vector inertia, double velocityScale) {
+void initializeAngularVelocities(std::vector<Molecule> *molecules, double velocityScale) {
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
     std::default_random_engine re;
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         Vector r = {unif(re), unif(re), unif(re)};
 
         Quaternion q = {r.x, r.y, r.z, 0};
-        double f = 0.5 * velocityScale / sqrt(dot(inertia, r, r));
+        double f = 0.5 * velocityScale / sqrt(dot(m.inertia, r, r));
 
         m.qVelocity = scale(multiply(m.quaternion, q), f);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
+    }
+}
+
+void initializeVelocities(std::vector<Molecule> *molecules, double temperature) {
+
+    long n = molecules->size();
+    Vector totalVelocity = getZeroVector();
+    double velocityScale = sqrt(3.0 * (1.0 - (1.0 / n) * temperature));
+
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+    std::default_random_engine re;
+
+    for (int i = 0; i < n; i++) {
+        Molecule m = molecules->[i];
+
+        Vector r = {unif(re), unif(re), unif(re)};
+        m.velocity = scale(r, velocityScale);
+
+        molecules->[i] = m;
+        totalVelocity = sum(totalVelocity, m.velocity);
+    }
+
+    Vector velocityReducer = scale(totalVelocity, -1.0 / (double) n);
+
+    for (int i = 0; i < n; i++) {
+        Molecule m = molecules->[i];
+        m.velocity = sum(m.velocity, velocityReducer);
+        molecules->[i] = m;
     }
 }
 
@@ -88,12 +116,49 @@ Vector computeAngularVelocities(Molecule m) {
     };
 }
 
+std::vector<Molecule> initializeMolecules(Parameters params, Molecule stub, double *velocityScale, double *width) {
+
+    std::vector<Molecule> molecules;
+
+    double half_step = params.density / 2.0;
+    double half_half_step = half_step / 2.0;
+    double x = half_half_step;
+
+    for (int i = 0; i < params.lattice_count; i++) {
+
+        double y = 0;
+        for (int j = 0; j < params.lattice_count; j++) {
+
+            double z = 0;
+            for (int k = 0; k < params.lattice_count; k++) {
+
+                Molecule m = stub;
+                m.position = {x + half_step, y + half_step, z + half_step};
+                molecules.push_back(m);
+
+                z += params.density;
+            }
+            y += params.density;
+        }
+        x += params.density;
+    }
+
+    *width = x - half_half_step;
+    *velocityScale = std::sqrt(3.0 * (1.0 - (1.0 / molecules.size()) * params.temperature));
+
+    initializeVelocities(&molecules, *velocityScale);
+    initializeAngularCoordinates(&molecules);
+    initializeAngularVelocities(&molecules, *velocityScale);
+
+    return molecules;
+}
+
 // Checked
 void computeAccelerationQuats(std::vector<Molecule> *molecules) {
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         Vector w = computeAngularVelocities(m);
 
         Quaternion q = {
@@ -105,7 +170,7 @@ void computeAccelerationQuats(std::vector<Molecule> *molecules) {
 
         m.qAcceleration = scale(multiply(m.quaternion, q), 0.5);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -140,9 +205,9 @@ Matrix makeRotationMatrix(Quaternion q, int transpose) {
 // Checked (is mol.ra == m.acceleration?)
 void calculateTorques(std::vector<Molecule> *molecules) {
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         Vector totalTorque = getZeroVector();
 
         m.acceleration = getZeroVector();
@@ -158,7 +223,7 @@ void calculateTorques(std::vector<Molecule> *molecules) {
         Matrix rotationMatrix = makeRotationMatrix(m.quaternion, 0);
         m.torque = multiplyVector(rotationMatrix, totalTorque);
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -166,9 +231,9 @@ void calculateTorques(std::vector<Molecule> *molecules) {
 // Initializing sites for each molecule from its position and site stub
 void createSites(std::vector<Molecule> *molecules, std::vector<Site> stubSites) {
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         Matrix rotation = makeRotationMatrix(m.quaternion, 1);
 
         // Just in case it is used on mol with sites
@@ -179,16 +244,16 @@ void createSites(std::vector<Molecule> *molecules, std::vector<Site> stubSites) 
             m.sites.push_back({site.type, getZeroVector(), sum(m.position, v)});
         }
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
 // Checked
 void updateSitesCoordinates(std::vector<Molecule> *molecules) {
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
         Matrix rotation = makeRotationMatrix(m.quaternion, 1);
 
         for (int j = 0; j < m.sites.size(); j++) {
@@ -198,7 +263,7 @@ void updateSitesCoordinates(std::vector<Molecule> *molecules) {
             m.sites[j] = site;
         }
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
 
@@ -206,12 +271,12 @@ void updateSitesCoordinates(std::vector<Molecule> *molecules) {
 // Preventing accumulation of computation errors
 void adjustQuaternions(std::vector<Molecule> *molecules) {
 
-    for (int i = 0; i < (*molecules).size(); i++) {
+    for (int i = 0; i < molecules->size(); i++) {
 
-        Molecule m = (*molecules)[i];
+        Molecule m = molecules->[i];
 
         m.quaternion = scale(m.quaternion, 1.0 / squareLength(m.quaternion));
 
-        (*molecules)[i] = m;
+        molecules->[i] = m;
     }
 }
