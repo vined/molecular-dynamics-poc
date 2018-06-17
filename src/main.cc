@@ -7,9 +7,18 @@
 #include "Energies.h"
 #include "Parameters.h"
 #include "StepResult.h"
-#include "LeapFrogResult.h"
+#include "PredictorCorrector.h"
 #include "utils/OutputUtils.h"
 
+// eps = 0.155 kcal/mol (1.08e-14 erg/molecule)
+// theta (o) = 3.154 A
+// b = e^2/eps*theta
+const double B = 183.5;
+
+struct StepEnergies {
+    double totalPotential;
+    double forces;
+};
 
 double applyBoundary(double position, double box_size) {
     if (position < 0) {
@@ -21,12 +30,31 @@ double applyBoundary(double position, double box_size) {
     return position;
 }
 
-Vector applyBoundaries(Vector position, double box_size) {
-    return {
-            applyBoundary(position.x, box_size),
-            applyBoundary(position.y, box_size),
-            applyBoundary(position.z, box_size)
-    };
+void checkOutOfBounds(Molecule m, double box_size) {
+    std::pair<double, double> min_max= getMinMaxCoordinate(m.position);
+    if (min_max.first < 0 || min_max.second > box_size) {
+        Vector p = m.position;
+        std::cout << "\nMolecule out of bounds (" << p.x << ',' << p.y << ',' << p.z << "), box size: " << box_size << std::endl;
+        throw 100;
+    }
+}
+
+Vector applyBoundaries(std::vector<Molecule> *molecules, double box_size) {
+
+    for (int i = 0; i < (*molecules).size(); i++) {
+
+        Molecule m = (*molecules)[i];
+
+        m.position = {
+                applyBoundary(m.position.x, box_size),
+                applyBoundary(m.position.y, box_size),
+                applyBoundary(m.position.z, box_size)
+        };
+
+        checkOutOfBounds(m, box_size);
+
+        (*molecules)[i] = m;
+    }
 }
 
 double withBoundary(double pos, double box_size, double cutoff) {
@@ -99,6 +127,8 @@ StepResult getPotentialAndUpdateForEach(Molecule m1, Molecule m2, double box_siz
                     s2.force = subtract(s2.force, pairPotential);
                     result_potential += site_potential;
                 }
+                m1.sites[i] = s1;
+                m2.sites[j] = s2;
             }
         }
     }
@@ -106,14 +136,15 @@ StepResult getPotentialAndUpdateForEach(Molecule m1, Molecule m2, double box_siz
     return {result_potential, force * length_squared, m1, m2};
 }
 
-LeapFrogResult getTotalPotentialAndUpdateForEach(std::vector<Molecule> *molecules, double box_size, double cutoff) {
+StepEnergies calculatePotentials(std::vector<Molecule> *molecules, double box_size, double cutoff) {
 
     double potential_energy = 0.0;
     double forces = 0.0;
+    double b = 0;
 
     for (int i = 0; i < (*molecules).size(); i++) {
         for (int j = i + 1; j < (*molecules).size(); j++) {
-            StepResult sr = getPotentialAndUpdateForEach((*molecules)[i], (*molecules)[j], box_size, cutoff);
+            StepResult sr = getPotentialAndUpdateForEach((*molecules)[i], (*molecules)[j], box_size, cutoff, b);
             potential_energy += sr.potentialEnergy;
             forces += sr.force;
             (*molecules)[i] = sr.m1;
@@ -124,59 +155,110 @@ LeapFrogResult getTotalPotentialAndUpdateForEach(std::vector<Molecule> *molecule
     return {potential_energy, forces};
 }
 
-Energies leapFrog(std::vector<Molecule> *molecules, double dt, double box_size, double cutoff, double density) {
+// Checked
+void normalizeTemperature(std::vector<Molecule> *molecules) {
 
     double n = (*molecules).size();
-    double half_dt = dt / 2.0;
+    double top = 0;
+    double bottom = 0;
 
-    for (int i = 0; i < n; i++) {
-        Molecule m = (*molecules)[i];
-        m.velocity = sum(m.velocity, scale(m.acceleration, half_dt));
-        m.position = applyBoundaries(sum(m.position, scale(m.velocity, dt)), box_size);
-        std::pair<double, double> min_max= getMinMaxCoordinate(m.position);
-
-        if (min_max.first < 0 || min_max.second > box_size) {
-            Vector p = m.position;
-            std::cout << "\nMolecule " << i << " out of bounds (" << p.x << ',' << p.y << ',' << p.z << "), box size: " << box_size << std::endl;
-            throw 100;
-        }
-
-        // Resetting forces
-        std::vector<Site> zeroedSites;
-        for (Site site : m.sites) {
-            site.force = getZeroVector();
-            zeroedSites.push_back(site);
-        }
-        m.sites = zeroedSites;
-
-        (*molecules)[i] = m;
-    }
-
-    // calculate velocity and position for half step
-    LeapFrogResult lfResult = getTotalPotentialAndUpdateForEach(molecules, box_size, cutoff);
-
-    double kinetic_energy = 0;
-    for (int i = 0; i < n; i++) {
-        Molecule m = (*molecules)[i];
-        m.velocity = sum(m.velocity, scale(m.acceleration, half_dt));
-        (*molecules)[i] = m;
+    for (Molecule m : *molecules) {
         Vector w = computeAngularVelocities(m);
-        kinetic_energy += dot(inertia, dot(w, w));
+        top += dot(m.velocity, m.acceleration) + dot(w, m.torque);
+        bottom += squaredLength(m.velocity) + dot(m.inertia, w);
     }
 
-    double pressure = density * (kinetic_energy + lfResult.forces) / ((*molecules).size() * 3.0);
+    double vDiff = -top/bottom;
+
+    for (int i = 0; i < n; i++) {
+        Molecule m = (*molecules)[i];
+        m.acceleration = sum(m.acceleration, scale(m.velocity, vDiff));
+        m.qAcceleration = sum(m.qAcceleration, scale(m.qVelocity, vDiff));
+        (*molecules)[i] = m;
+    }
+}
+
+void adjustTemperature(std::vector<Molecule> *molecules, double velocityScale) {
+    double velocityDiff = 0;
+    long n = (*molecules).size();
+    double velocitiesSum = 0;
+
+    for (Molecule m : *molecules) {
+        Vector w = computeAngularVelocities(m);
+        velocitiesSum += dot(m.inertia, w, w);
+    }
+
+    velocityDiff = velocityScale / sqrt(velocitiesSum/double(n));
+
+    for (int i = 0; i < n; i++) {
+        Molecule m = (*molecules)[i];
+        m.qVelocity = scale(m.qVelocity, velocityDiff);
+        (*molecules)[i] = m;
+    }
+}
+
+void adjustEquilibrationTemperature(std::vector<Molecule> *molecules, long equilibrationInterval, double velocityScale, double accKineticEnergy) {
+
+    long n = (*molecules).size();
+    double velocityDiff = velocityScale / sqrt(2.0 * accKineticEnergy / equilibrationInterval);
+
+    for (int i = 0; i < n; i++) {
+        Molecule m = (*molecules)[i];
+        m.velocity = scale(m.velocity, velocityDiff);
+        (*molecules)[i] = m;
+    }
+}
+
+Energies predictorCorrectorStep(
+        std::vector<Molecule> *molecules,
+        double dt,
+        double box_size,
+        double cutoff,
+        double density
+) {
+
+    predict(molecules, dt);
+    predictQuaternion(molecules, dt);
+
+    updateSitesCoordinates(molecules);
+
+    StepEnergies stepEnergies = calculatePotentials(molecules, box_size, cutoff);
+    calculateTorques(molecules);
+    computeAccelerationQuats(molecules);
+
+    normalizeTemperature(molecules);
+
+    correct(molecules, dt);
+    correctQuaternion(molecules, dt);
+
+    adjustQuaternions(molecules);
+    applyBoundaries(molecules, box_size);
+
+
+    // Calculate measurements
+    double kinetic_energy = 0;
+    for (Molecule m : (*molecules)) {
+        Vector w = computeAngularVelocities(m);
+        kinetic_energy += dot(m.inertia, w, w);
+    }
+
+    double pressure = density * (kinetic_energy + stepEnergies.forces) / ((*molecules).size() * 3.0);
 
     return Energies(
             kinetic_energy / 2.0,
-            lfResult.totalPotential,
+            stepEnergies.totalPotential,
             pressure
     );
 }
 
-void runSimulation(Parameters params, std::vector<Atom> atoms, double box_size, double cutoff) {
+void runSimulation(Parameters params, std::vector<Molecule> *molecules, double box_size, double cutoff) {
+
+    double velocityScale = std::sqrt(3.0 * (1.0 - (1.0 / (*molecules).size()) * params.temperature));
+    double kineticEnergySum = 0;
 
     double time = 0.0;
     long i = 0;
+    long n = (*molecules).size();
 
     std::vector<std::vector<double>> energies;
     std::vector<double> kinetic;
@@ -191,14 +273,28 @@ void runSimulation(Parameters params, std::vector<Atom> atoms, double box_size, 
 
     while (time < params.max_time) {
 
-        Energies e = leapFrog(&atoms, params.dt, box_size, cutoff, params.density);
+        Energies e = predictorCorrectorStep(molecules, params.dt, box_size, cutoff, params.density);
+
+        // Temperature adjustments
+        if (i > params.equilibration_steps) {
+            if (i % params.adjust_temperature_interval == 0) {
+                adjustTemperature(molecules, velocityScale);
+            }
+        } else {
+            kineticEnergySum += e.kinetic;
+
+            if (i % params.adjust_equilibration_temp_interval == 0) {
+                adjustEquilibrationTemperature(molecules, params.adjust_equilibration_temp_interval, velocityScale, kineticEnergySum);
+                kineticEnergySum = 0;
+            }
+        }
 
         if (i % params.data_export_interval == 0) {
-            energies[0].push_back(e.kinetic / atoms.size());
-            energies[1].push_back(e.potential / atoms.size());
-            energies[2].push_back(e.pressure / (atoms.size() * 3.0));
+            energies[0].push_back(e.kinetic / n);
+            energies[1].push_back(e.potential / n);
+            energies[2].push_back(e.pressure / (n * 3.0));
 
-            exportAtomsPositions("atoms", atoms);
+//            exportAtomsPositions("atoms", atoms);
             std::cout << ".";
         }
 

@@ -1,26 +1,30 @@
-# delta t - time step size in nano seconds (0.5 - 10fs, optimal 2fs)
-0.001
+# delta t - time step size in nano seconds (0.5 - 10fs, optimal 2fs) in reduced units (0.0005 = 8e-16)
+0.0005
 
 # maximum simulation time in nano seconds (1 - 10ns)
 50.0
 
-# temperature in kelvins
-1.0
+# temperature (in reduced units 3.8 = 298K)
+3.8
 
-# sigma in nano meters (for argon 3.4e-10)
-0.34
+# cut-off radius in reduced units (2.38 = 7.5 Angstroms)
+2.38
 
-# atom mass in e-26 grams (for argon 6.69e-26)
-6.69
+# density in reduced units (0.983 = 3.103 Angstroms)
+0.983
 
-# epsilon in e-21 J (for argon 1.65e-21)
-1.65
+# lattice atoms count
+10
 
 # data export interval
 10
 
-# density in Angstroms, only used if atoms configuration file is not provided
-0.8
+# adjust temperature interval
+5
 
-# lattice atoms count, only used if atoms configuration file is not provided
-10
+# adjust equilibration temperature interval
+5
+
+# equilibration steps
+50
+

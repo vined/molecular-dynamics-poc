@@ -7,6 +7,7 @@
 
 
 struct Matrix {
+    // Should be size of 9
     std::vector<double> values;
 };
 

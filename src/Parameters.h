@@ -10,37 +10,43 @@
 
 struct Parameters {
 
-    double dt; // delta t - time step size in femtoseconds
-    double max_time; // maximum simulation time in nanoseconds
+    double dt;
+    double max_time;
+
     double temperature;
-    double sigma; // sigma in nano ergs (e-9)
-    double mass; // atom mass in e-23 grams
-    double epsilon; // epsilon in e-14
-    long data_export_interval; // atoms positions export interval
+    double cut_off; // epsilon in e-14
     double density; // density
     long lattice_count;
 
+    long data_export_interval;
+    long adjust_temperature_interval;
+    long adjust_equilibration_temp_interval;
+    long equilibration_steps; // how long equilibration should be applied
 
     Parameters(
             double _dt,
             double _max_time,
             double _temperature,
-            double _sigma, // nano ergs (e-9)
-            double _mass, // e-26 grams
-            double _epsilon, // e-21
-            long _pos_export_interval,
+            double _cut_off, // nano ergs (e-9)
             double _density,
-            long _lattice_count
+            long _lattice_count,
+            long _pos_export_interval,
+            long _adjust_temperature_interval,
+            long _adjust_equilibration_temp_interval,
+            long _equilibration_steps
     ) {
         dt = _dt;
         max_time = _max_time;
-        temperature =
-        sigma = _sigma * pow(10, -9);
-        mass = _mass * pow(10, -26);
-        epsilon = _epsilon * pow(10, -21);
-        data_export_interval = _pos_export_interval;
+
+        temperature = _temperature;
+        cut_off = _cut_off;
         density = _density;
         lattice_count = _lattice_count;
+
+        data_export_interval = _pos_export_interval;
+        adjust_temperature_interval = _adjust_temperature_interval;
+        adjust_equilibration_temp_interval = _adjust_equilibration_temp_interval;
+        equilibration_steps = _equilibration_steps;
     }
 
 };

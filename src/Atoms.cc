@@ -6,15 +6,18 @@
 #include "Atoms.h"
 #include "utils/FileUtils.h"
 
+#define AR_MASS 6.69
+#define AR_SIGMA 0.34
+#define AR_EPSILON 1.65
+
+AtomType argonAtomType = {
+        "Ar",
+        AR_MASS,
+        AR_SIGMA,
+        AR_EPSILON
+};
 
 std::vector<Atom> initializeAtoms(Parameters params, double *width) {
-
-    AtomType atomType = {
-            "Ar",
-            params.mass,
-            params.sigma,
-            params.epsilon
-    };
 
     std::vector<Atom> atoms;
 
@@ -29,7 +32,7 @@ std::vector<Atom> initializeAtoms(Parameters params, double *width) {
 
             double z = 0;
             for (int k = 0; k < params.lattice_count; k++) {
-                atoms.push_back(Atom(atomType, {x + half_step, y + half_step, z + half_step}));
+                atoms.push_back(Atom(argonAtomType, {x + half_step, y + half_step, z + half_step}));
 
 //                atoms.push_back(Atom(atomType, {x, y, z}));
 //                atoms.push_back(Atom(atomType, {x + half_half_step, y + half_half_step, z + half_half_step}));
@@ -121,12 +124,5 @@ std::vector<Atom> readAtomsData(Parameters params, std::string fileName, double 
         lines.push_back(line);
     }
 
-    AtomType atomType = {
-            "Ar",
-            params.mass,
-            params.sigma,
-            params.epsilon
-    };
-
-    return parseAtoms(lines, atomType, box_size);
+    return parseAtoms(lines, argonAtomType, box_size);
 }

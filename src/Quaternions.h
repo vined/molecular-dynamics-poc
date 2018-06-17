@@ -11,13 +11,13 @@ struct Quaternion {
 
 Quaternion getZero();
 
-Quaternion add(Quaternion q1, Quaternion q2);
+Quaternion sum(Quaternion q1, Quaternion q2);
+
+Quaternion subtract(Quaternion q1, Quaternion q2);
 
 Quaternion scale(Quaternion q, double scalar);
 
 Quaternion multiply(Quaternion q1, Quaternion q2);
-
-double length(Quaternion q);
 
 double squareLength(Quaternion q);
 

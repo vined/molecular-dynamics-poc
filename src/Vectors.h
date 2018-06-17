@@ -24,7 +24,9 @@ Vector multiply(Vector v1, Vector v2);
 
 Vector crossProduct(Vector v1, Vector v2);
 
-Vector dot(Vector v1, Vector v2);
+double dot(Vector v1, Vector v2);
+
+double dot(Vector v1, Vector v2, Vector v3);
 
 double squaredLength(Vector v);
 

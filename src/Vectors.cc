@@ -5,8 +5,6 @@
 #include "Vectors.h"
 
 
-// TODO add unit tests
-
 Vector getZeroVector() {
     return {0, 0, 0};
 }
@@ -43,12 +41,12 @@ Vector crossProduct(Vector v1, Vector v2) {
     };
 }
 
-Vector dot(Vector v1, Vector v2) {
-    return {
-            v1.x * v2.x,
-            v1.y * v2.y,
-            v1.z * v2.z
-    };
+double dot(Vector v1, Vector v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+double dot(Vector v1, Vector v2, Vector v3) {
+    return v1.x * v2.x * v3.x + v1.y * v2.y * v3.y + v1.z * v2.z * v3.z;
 }
 
 double squaredLength(Vector v) {
@@ -56,7 +54,7 @@ double squaredLength(Vector v) {
 }
 
 double length(Vector v) {
-    return sqrt(std::pow(v.x, 2.0) + std::pow(v.y, 2.0) + std::pow(v.z, 2.0));
+    return sqrt(squaredLength(v));
 }
 
 std::pair<double, double> getMinMaxCoordinate(Vector v) {

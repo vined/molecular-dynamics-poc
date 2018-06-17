@@ -4,6 +4,7 @@
 #include "Molecules.h"
 
 
+// Checked
 Quaternion eulerToQuaternion(std::vector<double> eAngular) {
 
     double a1 = 0.5 * eAngular[1];
@@ -17,6 +18,20 @@ Quaternion eulerToQuaternion(std::vector<double> eAngular) {
     };
 }
 
+Molecule getWaterMoleculeStub() {
+    Molecule m = Molecule();
+
+    m.sites.push_back({1, getZeroVector(), {0, 0, -0.0206}});
+    m.sites.push_back({2, getZeroVector(), {0, 0, -0.0274}});
+    m.sites.push_back({3, getZeroVector(), {0, 0.24, 0.165}});
+    m.sites.push_back({3, getZeroVector(), {0, -0.24, 0.165}});
+
+    m.inertia = {0.0098, 0.0034, 0.0064};
+
+    return m;
+}
+
+// Checked
 std::vector<Molecule> initializeAngularCoordinates(std::vector<Molecule> *molecules) {
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
@@ -30,7 +45,7 @@ std::vector<Molecule> initializeAngularCoordinates(std::vector<Molecule> *molecu
 
         std::vector<double> eAngular;
         eAngular.push_back(std::atan2(random.x, random.y));
-        eAngular.push_back((double) std::acos(random.z));
+        eAngular.push_back(std::acos(random.z));
         eAngular.push_back(2.0 * M_PI * unif(re));
 
         m.quaternion = eulerToQuaternion(eAngular);
@@ -39,12 +54,10 @@ std::vector<Molecule> initializeAngularCoordinates(std::vector<Molecule> *molecu
     }
 }
 
-std::vector<Molecule> initializeAngularVelocities(std::vector<Molecule> *molecules, Vector inertia, double temperature) {
+std::vector<Molecule> initializeAngularVelocities(std::vector<Molecule> *molecules, Vector inertia, double velocityScale) {
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
     std::default_random_engine re;
-
-    double velocityScale = std::sqrt(3.0 * (1.0 - (1.0 / (*molecules).size()) * temperature));
 
     for (int i = 0; i < (*molecules).size(); i++) {
 
@@ -52,7 +65,7 @@ std::vector<Molecule> initializeAngularVelocities(std::vector<Molecule> *molecul
         Vector r = {unif(re), unif(re), unif(re)};
 
         Quaternion q = {r.x, r.y, r.z, 0};
-        double f = 0.5 * velocityScale / length(dot(inertia, dot(r, r)));
+        double f = 0.5 * velocityScale / sqrt(dot(inertia, r, r));
 
         m.qVelocity = scale(multiply(m.quaternion, q), f);
 
@@ -60,6 +73,7 @@ std::vector<Molecule> initializeAngularVelocities(std::vector<Molecule> *molecul
     }
 }
 
+// Checked
 Vector computeAngularVelocities(Molecule m) {
 
     Quaternion q = m.qVelocity;
@@ -74,7 +88,8 @@ Vector computeAngularVelocities(Molecule m) {
     };
 }
 
-void computeAccelerationQuats(std::vector<Molecule> *molecules, Vector inertia) {
+// Checked
+void computeAccelerationQuats(std::vector<Molecule> *molecules) {
 
     for (int i = 0; i < (*molecules).size(); i++) {
 
@@ -82,9 +97,10 @@ void computeAccelerationQuats(std::vector<Molecule> *molecules, Vector inertia) 
         Vector w = computeAngularVelocities(m);
 
         Quaternion q = {
-                (m.torque.x + (inertia.y - inertia.z) * w.y * w.z) / inertia.x,
-                (m.torque.y + (inertia.z - inertia.x) * w.z * w.x) / inertia.y,
-                (m.torque.z + (inertia.x - inertia.y) * w.x * w.y) / inertia.z
+                (m.torque.x + (m.inertia.y - m.inertia.z) * w.y * w.z) / m.inertia.x,
+                (m.torque.y + (m.inertia.z - m.inertia.x) * w.z * w.x) / m.inertia.y,
+                (m.torque.z + (m.inertia.x - m.inertia.y) * w.x * w.y) / m.inertia.z,
+                -2.0 * squareLength(m.qVelocity)
         };
 
         m.qAcceleration = scale(multiply(m.quaternion, q), 0.5);
@@ -93,6 +109,7 @@ void computeAccelerationQuats(std::vector<Molecule> *molecules, Vector inertia) 
     }
 }
 
+// Checked
 Matrix makeRotationMatrix(Quaternion q, int transpose) {
 
     std::vector<double> torque = toVector(q);
@@ -120,6 +137,7 @@ Matrix makeRotationMatrix(Quaternion q, int transpose) {
     return {matrix};
 }
 
+// Checked (is mol.ra == m.acceleration?)
 void calculateTorques(std::vector<Molecule> *molecules) {
 
     for (int i = 0; i < (*molecules).size(); i++) {
@@ -127,8 +145,10 @@ void calculateTorques(std::vector<Molecule> *molecules) {
         Molecule m = (*molecules)[i];
         Vector totalTorque = getZeroVector();
 
+        m.acceleration = getZeroVector();
+
         for (Site site : m.sites) {
-            m.position = sum(m.position, site.force);
+            m.acceleration = sum(m.acceleration, site.force);
 
             Vector diff = subtract(site.position, m.position);
             Vector torque = crossProduct(diff, site.force);
@@ -142,17 +162,20 @@ void calculateTorques(std::vector<Molecule> *molecules) {
     }
 }
 
-void initializeSites(std::vector<Molecule> *molecules, std::vector<Site> sites) {
+// Checked
+// Initializing sites for each molecule from its position and site stub
+void createSites(std::vector<Molecule> *molecules, std::vector<Site> stubSites) {
 
     for (int i = 0; i < (*molecules).size(); i++) {
 
         Molecule m = (*molecules)[i];
         Matrix rotation = makeRotationMatrix(m.quaternion, 1);
 
-        for (Site site : sites) {
+        // Just in case it is used on mol with sites
+        m.sites.clear();
 
+        for (Site site : stubSites) {
             Vector v = multiplyVector(rotation, site.position);
-
             m.sites.push_back({site.type, getZeroVector(), sum(m.position, v)});
         }
 
@@ -160,13 +183,34 @@ void initializeSites(std::vector<Molecule> *molecules, std::vector<Site> sites) 
     }
 }
 
+// Checked
+void updateSitesCoordinates(std::vector<Molecule> *molecules) {
+
+    for (int i = 0; i < (*molecules).size(); i++) {
+
+        Molecule m = (*molecules)[i];
+        Matrix rotation = makeRotationMatrix(m.quaternion, 1);
+
+        for (int j = 0; j < m.sites.size(); j++) {
+            Site site = m.sites[j];
+            Vector v = multiplyVector(rotation, site.position);
+            site.position = sum(m.position, v);
+            m.sites[j] = site;
+        }
+
+        (*molecules)[i] = m;
+    }
+}
+
+// Checked
+// Preventing accumulation of computation errors
 void adjustQuaternions(std::vector<Molecule> *molecules) {
 
     for (int i = 0; i < (*molecules).size(); i++) {
 
         Molecule m = (*molecules)[i];
 
-        m.quaternion = scale(m.quaternion, length(m.quaternion));
+        m.quaternion = scale(m.quaternion, 1.0 / squareLength(m.quaternion));
 
         (*molecules)[i] = m;
     }

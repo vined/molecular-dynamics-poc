@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "OutputUtils.h"
+#include "../Molecules.h"
 
 
 #define OUTPUT_DIR "./out/"
