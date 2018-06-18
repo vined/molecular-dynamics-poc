@@ -21,8 +21,9 @@ MD simuliaciją sudaro trys dalys: sąveikos modelis (jėgos laukas), modelio s�
 
 Pradinės pozicijos gali būti parinktos atsitiktine tvarka, bet tai nėra rekomenduotina, nes turi būti išlaikytas minimalus atstumas tarp dalelių.
 Dažniausiai pozicijos parenkamos pseudo atsitiktine tvarka remiantis empiriniais eksperimentų duomenimis.
-Pradinis greitis nėra toks svarbus, nes jis bus perskaičiuotas jau pirmame žingsnyje ir gali būti parinktas atsitiktine tvarka pagal Gauso skirstinį,
+Pradinis greitis nėra toks svarbus, nes jis bus normalizuotas jau pirmame žingsnyje ir gali būti parinktas atsitiktine tvarka pagal Gauso skirstinį,
 kad pradinis suminis sistemos momentas \(p\) būtų lygus nuliui.
+Tai reikalinga sistemos išlaikymui modeliuojamos erdvės centre.
 
 
 \begin{figure}
@@ -53,10 +54,10 @@ kad pradinis suminis sistemos momentas \(p\) būtų lygus nuliui.
 \label{fig:steps}
 \end{figure}
 
-Diskrečiais laiko žingsniais atliekami žingzniai pavaizduoti iliustracijoje \ref{fig:steps}.
+Diskretaus laiko tarpais atliekami žingsniai pavaizduoti iliustracijoje \ref{fig:steps}.
 Po kiekvieno žingsnio suskaičiuojama suminė viso modelio energija.
 Dalelėms susidūrus, dalis energijos virsta šiluma.
-Todėl po kiekvieno ciklo taip pat skaičiuojamas sistemos slėgis ar temperatūra priklausomai nuo modelio tipo.
+Todėl po kiekvieno ciklo taip pat skaičiuojamas sistemos temperatūra ir slėgis priklausomai nuo modelio tipo.
 Skaičiavimai baigiasi kai pasiekiamas norimas rezultatas, pavyzdžiui dalelės pasiekė nustatytą klasterizavimosi lygį,
 arba buvo atliktas norimas žingsnių kiekis.
 
@@ -67,7 +68,7 @@ Dėl pradinių atsitiktinių parametrų dažniausiai sistema turi per didelį po
 Perteklinė potencinė energija laikui bėgant virsta kinetine, kuri kelia sistemos temperatūrą.
 Norint sumažinti temperatūrą reikia sumažinti dalelių greičius.
 Modeliavimo metu tai daroma keletą kartų kol sistema nusistovi ir pasiekamas norimas kinetinės energijos kiekis.
-Tik tada prasideda simuliacija \(t = 0\)~\cite{ref_hitch}.
+Tik tada prasideda simuliacija \(t = 0\)~\cite{hitch}.
 
 
 \subsection{Molekulinės dinamikos taikymai}
@@ -79,6 +80,6 @@ Taip pat dažnai naudojama biochemijoje proteinų ir makro molekulių simuliacij
 Tai padeda geriau įvertinti vaistų veikliųjų medžiagų saveiką su tikslinėmis molekulėmis.
 Inter-molekuliniai modeliai leidžia analizuoti ilgųjų molekulių kaip DNR sukinius (folding).
 
-Molekulinė dinamika yra vienintelis būdas suprasti molekulių judėjimą, kai reikia suprasti procesus,
-vykstančius mikroskopiniame lygyje, kurių neįmanoma ar per sudėtinga tiesiogiai stebėti~\cite{ref_art}.
+Molekulinė dinamika yra vienintelis būdas pamatyti tikslų molekulių judėjimą ir kai reikia suprasti procesus,
+vykstančius mikroskopiniame lygyje, kurių neįmanoma ar per sudėtinga tiesiogiai stebėti~\cite{art}.
 

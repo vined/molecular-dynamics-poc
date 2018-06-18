@@ -1,18 +1,18 @@
 Šiame tyrime naudojamas fliuktuojančio krūvio jėgos laukas.
-Skirtingai nuo kitų poliarizuotų jėgos laukų fliuktuojantis krūvis taikomas keliems taškams (site) molekulėje, o ne kiekvienam atomui.
-Bet skaičiavimai gali būti atlikti tame pačiame žingsnyje ir nereikalauja papildomų parametrų atomuose.
+Skirtingai nuo kitų poliarizuotų jėgos laukų, fliuktuojantis krūvis gali būti taikomas keliems taškams (site) molekulėje, o ne kiekvienam atomui \cite{polar}.
+Tai sumažina skaičiavimų kiekį. Be to skaičiavimai gali būti atlikti tame pačiame žingsnyje.
 
 \begin{multline} \label{eq:fluct_charge}
 U_{e}(r, q) = \sum\limits_{i=1}^{N_{molec}} \sum\limits_{\alpha=1}^{N_{site}}
 {\bigg[\chi_{i\alpha}^0 q_{i\alpha} + \dfrac{1} {2} J_{i\alpha i\alpha}^0 q_{i\alpha}^2 \bigg]} \\
 + \sum\limits_{i=1}^{N_{molec}} \sum\limits_{\alpha=1}^{N_{site}} \sum\limits_{\beta>\alpha}^{N_{site}}
-{J_{i\alpha i\beta} (r_{i\alpha i\beta}) q_{i\alpha} q_{i\beta}} \\
+{J_{i\alpha i\beta} (r_{i\alpha i\beta}) q_{i\alpha} q_{i\beta}}
 + \sum\limits_{i=1}^{N_{molec}} \sum\limits_{j>i}^{N_{molec}} \sum\limits_{\alpha=1}^{N_{site}} \sum\limits_{\beta>\alpha}^{N_{site}}
 {J_{i\alpha j\beta} (r_{i\alpha j\beta}) q_{i\alpha} q_{j\beta}}
 \end{multline}
 
 Formulė \ref{eq:fluct_charge} pakeičia anksčiau naudotą Kulono formulę \ref{eq:coloumb}.
-Čia \(\chi_{ij}^0\) yra Mulikeno elektroneigiamumas, \(J_{\alpha\alpha}\) - absoliutus kietumas.
+Čia \(\chi_{ij}^0\) yra Mulikeno (Mulliken) elektroneigiamumas, \(J_{\alpha\alpha}\) - absoliutus kietumas (angl. \textit{absolute hardness}).
 Iš formulės matosi, kad naudojamos tos pačios elektrostatinių krūvių reikšmės kaip ir Kulono dėsnyje,
 bet jų stiprumas jau priklauso nuo aplink esančių krūvių.
 

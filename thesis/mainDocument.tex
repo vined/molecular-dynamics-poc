@@ -32,9 +32,12 @@
 
     % Keywords and notations if needed
     \sectionWithoutNumber{Sutartinis terminų žodynas}{keywords}{
-        Jei ilgesnis nei 10 simbolių ir kartojasi daugiau nei 3 kartus.
 
         MD - molekulinė dinamika (angl. \textit{Molecular dynamics})
+
+        FF - jėgos laukas (angl. \textit{Force field})
+
+        FCFF - fliuktuojančio krūvio jėgos laukas (angl. \textit{Fluctuating charge force field})
     }
 
     % Both abstracts
@@ -74,25 +77,11 @@
 
 
 
-    % Data
-    \newpage
-    \section{Duomenys}
-    \label{sec:data}
-
-    --- Todo add water molecule details
-
-
     % Algorithm
     \newpage
     \section{Implementacija}
-    \label{sec:algorithm_implementation}
-    Programavimo kalba: C++
-    Pridėti kodo eilučių skaičių
-    Papildomos programos: VMD ir gnuplot, dar gal xfig
-
-
     \label{sec:implementation}
-    \include{implementation.tex}
+    \input{implementation.tex}
 
 
 
@@ -102,7 +91,7 @@
 
     %Conclusions section
     \sectionWithoutNumber{Ateities tyrimų planas}{futureWork}
-    \input{conclusions.tex}
+    \input{futureWork}
 
 
     %file literatureSources.bib

@@ -1,8 +1,12 @@
-In molecular dynamics simulations most commonly simplified force fields are used.
-They use Coulomb's law for electrostatic forces between atoms. Atoms are assigned with electrostatic force value not accounting for their surrounding.
+In molecular dynamics simulations the algorithm work horses are force fields.
+Most commonly simplified force fields are used.
+They use Coulomb's law for electrostatic forces between atoms.
+Atoms are assigned with electrostatic force value not accounting for their surrounding.
 This helps to make calculations with large atoms count fast, but accuracy is noticebly diminished in cases there electrostatic energies play a bigger role.
-Current applications of polarized fields show increased accuracy in inter-molecular interactions models, like water freezing or large molecules (proteins, lipids) folding.
+Current studies of polarized force fields show increased accuracy in inter-molecular interactions models,
+like water freezing or large molecules (proteins, lipids) folding.
+One of them if fluctuating charge force field.
+Electrostatic interactions are calculated between points on molecules called sites.
+This allows to calculate charge in separate step, which eases force field incorporation to egzisting models.
+As a bonus, sites can move along the bonds, which is proved to be happening in real life molecules.
 This paper analyses fluctuating charge polarized force field application in molecules clumping models.
-
-
-Prideti rezultatus ir turi buti ilgesnė nei LT, minimum pusė puslapio.
