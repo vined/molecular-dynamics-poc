@@ -92,7 +92,11 @@ StepResult getPotentialAndUpdateForEach(
     Vector diff = getDistance(m1->position, m2->position, box_size, cutoff);
     double length_squared = squaredLength(diff);
 
+//    std::cout << "Diff: " << vectorToString(diff) << ", m1 pos: "<< vectorToString(m1->position) << ", m2 pos: "<< vectorToString(m2->position) << std::endl;
+//    std::cout << "Len sq: " << length_squared << ", cutoff squared: "<< cutoff_squared << std::endl;
+
     if (length_squared < cutoff_squared) {
+//        std::cout << " --- Molecules interact" << std::endl;
 
         for (int i = 0; i < m1->sites.size(); i++) {
             for (int j = 0; j < m2->sites.size(); j++) {
@@ -103,37 +107,37 @@ StepResult getPotentialAndUpdateForEach(
                 if (s1.type == s2.type || typeSum == 5) {
 
                     Vector site_diff = getDistance(s1.position, s2.position, box_size, cutoff);
-                    double site_length_squared_inv = 1.0 / squaredLength(site_diff);
+                    double site_diff_squared_inv = 1.0 / squaredLength(site_diff);
 
                     double site_potential = 0;
                     double site_force = 0;
 
                     switch (typeSum) {
                         case 2: {
-                            double site_len_inv_cubed = std::pow(site_length_squared_inv, 3.0);
+                            double site_len_inv_cubed = std::pow(site_diff_squared_inv, 3.0);
                             site_potential = 4.0 * site_len_inv_cubed * (site_len_inv_cubed - 1.0);
                             site_force =
-                                    (48.0 * site_len_inv_cubed * (site_len_inv_cubed - 0.5)) * site_length_squared_inv;
+                                    48.0 * site_len_inv_cubed * (site_len_inv_cubed - 0.5) * site_diff_squared_inv;
                             break;
                         }
                         case 4: {
-                            site_potential = 4.0 * b * std::sqrt(site_length_squared_inv);
-                            site_force = site_potential * site_length_squared_inv;
+                            site_potential = 4.0 * b * std::sqrt(site_diff_squared_inv);
+                            site_force = site_potential * site_diff_squared_inv;
                             break;
                         }
                         case 5: {
-                            site_potential = -2.0 * b * std::sqrt(site_length_squared_inv);
-                            site_force = site_potential * site_length_squared_inv;
+                            site_potential = -2.0 * b * std::sqrt(site_diff_squared_inv);
+                            site_force = site_potential * site_diff_squared_inv;
                             break;
                         }
                         case 6: {
-                            site_potential = b * std::sqrt(site_length_squared_inv);
-                            site_force = site_potential * site_length_squared_inv;
+                            site_potential = b * std::sqrt(site_diff_squared_inv);
+                            site_force = site_potential * site_diff_squared_inv;
                             break;
                         }
                     }
 
-//                    std::cout << "TypeSum: " << typeSum << ", b: " << b << ", site potential: " << site_potential << ", site force: " << site_force << std::endl;
+                    std::cout << "Type1: " << s1.type << ", type2: " << s2.type << ", typeSum: " << typeSum << ", b: " << b << ", site potential: " << site_potential << ", site force: " << site_force << std::endl;
 
                     Vector pairPotential = scale(site_diff, site_force);
                     s1.force = sum(s1.force, pairPotential);
@@ -246,29 +250,49 @@ Energies predictorCorrectorStep(
         double density,
         double hydrogen_bond_energy
 ) {
-    for (Molecule m : *molecules) {
-        std::cout << "Molecule position: " << vectorToString(m.position) << std::endl;
+//    long i = 0;
+//    for (Molecule m : *molecules) {
+//        std::cout << "Molecule: -- " << i << " -- " << std::endl;
+//        std::cout << "Molecule position: " << vectorToString(m.position) << std::endl;
 //        std::cout << "Molecule velocity: " << vectorToString(m.velocity) << std::endl;
 //        std::cout << "Molecule inertia: " << vectorToString(m.inertia) << std::endl;
-//        std::cout << "Molecule toroue: " << vectorToString(m.torque) << std::endl;
+//        std::cout << "Molecule torque: " << vectorToString(m.torque) << std::endl;
 //        std::cout << "Molecule angular coords: " << quatToString(m.quaternion) << std::endl;
 //        std::cout << "Molecule angular velocities: " << quatToString(m.qVelocity) << std::endl;
-    }
+//        i++;
+//    }
 
     predict(molecules, dt);
     predictQuaternion(molecules, dt);
 
+
     updateSitesCoordinates(molecules);
+
+//    std::cout << "+++ Updated m1 pos: "<< vectorToString(molecules->at(0).position) << ", m2 pos: "<< vectorToString(molecules->at(1).position) << std::endl;
+//    std::cout << "+++ Prev m1 pos: "<< vectorToString(molecules->at(0).positionPrev) << ", m2 pos: "<< vectorToString(molecules->at(1).positionPrev) << std::endl;
 
     StepEnergies stepEnergies = calculatePotentials(molecules, box_size, cutoff, hydrogen_bond_energy);
     calculateTorques(molecules);
     computeAccelerationQuats(molecules);
 
+    long i = 0;
+    for (Molecule m : *molecules) {
+        std::cout << "Molecule: -- " << i << " -- " << std::endl;
+        std::cout << "Molecule position: " << vectorToString(m.position) << std::endl;
+        for (Site s : m.sites) {
+            std::cout << "Site " << s.type << " position: " << vectorToString(s.position) << " force: " << vectorToString(s.force) << std::endl;
+        }
+        std::cout << "Molecule torque: " << vectorToString(m.torque) << std::endl;
+//        std::cout << "Molecule angular coords: " << quatToString(m.quaternion) << std::endl;
+//        std::cout << "Molecule angular velocities: " << quatToString(m.qVelocity) << std::endl;
+        i++;
+    }
+
 //    normalizeTemperature(molecules);
 
-//    correct(molecules, dt);
+    correct(molecules, dt);
 //    correctQuaternion(molecules, dt);
-
+//
 //    adjustQuaternions(molecules);
 //    applyBoundaries(molecules, box_size);
 
@@ -281,6 +305,8 @@ Energies predictorCorrectorStep(
     }
 
     double pressure = density * (kinetic_energy + stepEnergies.forces) / (molecules->size() * 3.0);
+
+    std::cout << "kinetic: " << kinetic_energy << ", potential: " << stepEnergies.totalPotential << ", pressure: " << pressure << std::endl;
 
     return {
         0.5 * kinetic_energy / molecules->size(),
@@ -311,10 +337,10 @@ void runSimulation(Parameters params, std::vector<Molecule> *molecules, double b
 
         Energies e = predictorCorrectorStep(molecules, params.dt, box_size, cutoff, params.density, params.hydrogen_bond_threshold_energy);
 
-        std::cout << "i: " << i << ", kinetic: " << e.kinetic << ", potential: " << e.potential << ", preassure: " << e.pressure << std::endl;
+//        std::cout << "i: " << i << ", kinetic: " << e.kinetic << ", potential: " << e.potential << ", preassure: " << e.pressure << std::endl;
 
         // Temperature adjustments
-        if (i >= params.equilibration_steps) {
+        if (i > params.equilibration_steps) {
             if (i % params.adjust_temperature_interval == 0) {
                 adjustTemperature(molecules, velocityScale);
             }
@@ -332,6 +358,9 @@ void runSimulation(Parameters params, std::vector<Molecule> *molecules, double b
             energies[0].push_back(e.kinetic);
             energies[1].push_back(e.kinetic + e.potential);
             energies[2].push_back(e.pressure);
+
+            exportMoleculesPositions("positions", molecules);
+
             std::cout << ".";
         }
 

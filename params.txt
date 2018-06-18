@@ -3,7 +3,7 @@
 0.0003
 
 # maximum simulation steps
-5
+10
 
 # temperature (in reduced units 3.8 = 298K)
 3.8
@@ -14,11 +14,11 @@
 # density in reduced units (0.983 = 3.103 Angstroms)
 0.983
 
-# lattice atoms count 6
-3
+# lattice atoms count
+6
 
 # data export interval
-10
+1
 
 # adjust temperature interval
 1000

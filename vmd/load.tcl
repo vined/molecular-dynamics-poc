@@ -1,1 +1,1 @@
-mol new ./out/atoms.xyz
+mol new ./out/positions.xyz

@@ -23,10 +23,10 @@ Quaternion eulerToQuaternion(std::vector<double> eAngular) {
 Molecule getWaterMoleculeStub() {
     Molecule m = Molecule();
 
-    m.sites.push_back({1, getZeroVector(), {0, 0, -0.0206}});
-    m.sites.push_back({2, getZeroVector(), {0, 0, -0.0274}});
-    m.sites.push_back({3, getZeroVector(), {0, 0.24, 0.165}});
-    m.sites.push_back({3, getZeroVector(), {0, -0.24, 0.165}});
+    m.sites.push_back({1, getZeroVector(), {0, 0, -0.0206}}); // O
+    m.sites.push_back({2, getZeroVector(), {0, 0, 0.0274}}); // mass center
+    m.sites.push_back({3, getZeroVector(), {0, 0.24, 0.165}}); // H
+    m.sites.push_back({3, getZeroVector(), {0, -0.24, 0.165}}); // H
 
     m.inertia = {0.0098, 0.0034, 0.0064};
 
@@ -75,11 +75,10 @@ void initializeAngularVelocities(std::vector<Molecule> *molecules, double veloci
     }
 }
 
-void initializeVelocities(std::vector<Molecule> *molecules, double temperature) {
+void initializeVelocities(std::vector<Molecule> *molecules, double velocityScale) {
 
     long n = molecules->size();
     Vector totalVelocity = getZeroVector();
-    double velocityScale = sqrt(3.0 * (1.0 - (1.0 / n) * temperature));
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
     std::default_random_engine re;
@@ -130,7 +129,25 @@ Vector computeAngularVelocities(Molecule m) {
     };
 }
 
-std::vector<Molecule> initializeMolecules(Parameters params, Molecule stub, double *velocityScale, double *width) {
+std::vector<Molecule> generateTwoMolecules(Parameters params, Molecule stub, double *width) {
+
+    std::vector<Molecule> molecules;
+
+    *width = params.density * 2.0;
+    double half_step = params.density / 2.0;
+
+    Molecule m1 = stub;
+    m1.position = {half_step, half_step, half_step};
+    molecules.push_back(m1);
+
+    Molecule m2 = stub;
+    m2.position = {*width - half_step, *width - half_step, *width - half_step};
+    molecules.push_back(m2);
+
+    return molecules;
+}
+
+std::vector<Molecule> generateMoleculesWithPositions(Parameters params, Molecule stub, double *width) {
 
     std::vector<Molecule> molecules;
 
@@ -158,11 +175,35 @@ std::vector<Molecule> initializeMolecules(Parameters params, Molecule stub, doub
     }
 
     *width = x - half_half_step;
-    *velocityScale = std::sqrt(3.0 * (1.0 - (1.0 / molecules.size()) * params.temperature));
+
+    return molecules;
+}
+
+std::vector<Molecule> initializeMolecules(Parameters params, Molecule stub, double *velocityScale, double *width) {
+
+    std::vector<Molecule> molecules = generateTwoMolecules(params, stub, width);
+//    std::vector<Molecule> molecules = generateMoleculesWithPositions(params, stub, width);
+
+    *velocityScale = std::sqrt(3.0 * (1.0 - 1.0 / (double) molecules.size()) * params.temperature);
+//    std::cout << "Temperature: -- " << params.temperature << " -- " << std::endl;
+//    std::cout << "Before sqrt: -- " << 3.0 * (1.0 - 1.0 / (double) molecules.size()) * params.temperature << " -- " << std::endl;
+//    std::cout << "Velocity scale: -- " << *velocityScale << " -- " << std::endl;
 
     initializeVelocities(&molecules, *velocityScale);
     initializeAngularCoordinates(&molecules);
     initializeAngularVelocities(&molecules, *velocityScale);
+
+//    long i = 0;
+//    for (Molecule m : molecules) {
+//        std::cout << "Molecule in init: -- " << i << " -- " << std::endl;
+//        std::cout << "Molecule position: " << vectorToString(m.position) << std::endl;
+//        std::cout << "Molecule velocity: " << vectorToString(m.velocity) << std::endl;
+//        std::cout << "Molecule inertia: " << vectorToString(m.inertia) << std::endl;
+//        std::cout << "Molecule torque: " << vectorToString(m.torque) << std::endl;
+//        std::cout << "Molecule angular coords: " << quatToString(m.quaternion) << std::endl;
+//        std::cout << "Molecule angular velocities: " << quatToString(m.qVelocity) << std::endl;
+//        i++;
+//    }
 
     return molecules;
 }

@@ -1,4 +1,5 @@
 
+#include <iostream>
 
 #include "PredictorCorrector.h"
 #include "Vectors.h"
@@ -28,7 +29,6 @@ Quaternion fromPreviousStepQuat(Quaternion qAcceleration, Quaternion qAccelerati
     Quaternion q3 = scale(qAcceleration2, coefs[2]);
 
     return scale(sum(q1, sum(q2, q3)), w);
-
 }
 
 Vector pcPosition4(

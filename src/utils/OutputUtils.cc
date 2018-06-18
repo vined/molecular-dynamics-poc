@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "OutputUtils.h"
-#include "../Molecules.h"
 
 
 #define OUTPUT_DIR "./out/"
@@ -92,6 +91,37 @@ void exportAtomsPositions(std::string name, std::vector<Atom> atoms) {
     for (Atom atom : atoms) {
         Vector p = atom.position;
         dat << atom.type.symbol << " " << p.x * nmToAngst << " " << p.y * nmToAngst << " " << p.z * nmToAngst << std::endl;
+    }
+
+    dat.close();
+}
+
+std::string getTypeSymbol(int type) {
+    switch (type) {
+        case 1: return "O";
+        case 3: return "H";
+        default: return "";
+    }
+}
+
+void exportMoleculesPositions(std::string name, std::vector<Molecule> *molecules) {
+    std::string fileName = OUTPUT_DIR + name + ".xyz";
+
+    std::ofstream dat;
+    dat.open(fileName, std::ios_base::app);
+    dat.precision(PRECISION);
+
+    dat << molecules->size() << std::endl;
+
+    dat << "# " << std::endl;
+
+    for (Molecule m : *molecules) {
+//        Vector mp = m.position;
+        for (Site s : m.sites) {
+//            Vector p = sum(mp, s.position);
+            Vector p = s.position;
+            dat << getTypeSymbol(s.type) << " " << p.x << " " << p.y << " " << p.z << std::endl;
+        }
     }
 
     dat.close();

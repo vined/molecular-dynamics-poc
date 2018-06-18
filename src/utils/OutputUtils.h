@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../Atoms.h"
+#include "../Molecules.h"
 #include "../Quaternions.h"
 
 
@@ -21,5 +22,7 @@ void exportMultiVector(
 );
 
 void exportAtomsPositions(std::string name, std::vector<Atom> atoms);
+
+void exportMoleculesPositions(std::string name, std::vector<Molecule> *molecules);
 
 #endif //MOLECULAR_DYNAMICS_POC_OUTPUT_UTILS_H

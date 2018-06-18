@@ -53,7 +53,7 @@ std::vector<Atom> initializeAtoms(Parameters params, double *width) {
 std::vector<Atom> initializeVelocities(std::vector<Atom> atoms, double temperature) {
 
     Vector totalVelocity = getZeroVector();
-    double velocityScale = sqrt(3.0 * (1.0 - (1.0 / atoms.size()) * temperature));
+    double velocityScale = 0.0; // get from main
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
     std::default_random_engine re;
