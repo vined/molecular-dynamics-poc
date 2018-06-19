@@ -1,5 +1,5 @@
 
-LATEX_FAILO_VARDAS = mainDocument
+LATEX_FAILO_VARDAS = edvinas.naraveckas
 
 LATEX = pdflatex
 LATEXFLAGS = -halt-on-error
