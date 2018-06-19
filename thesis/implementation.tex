@@ -9,21 +9,6 @@ Atomų judėjimo vizualizavimui naudojamas VMD įrankis.
 Jis leidžia pažingsniui peržiūrėti atomų judėjimą, kurį nuskaito iš algoritmo išeksportuotų atomų pozicijų xyz formto failo.
 
 
-\subsection{Prediktoriaus - korektoriaus metodas}
-\label{sec:predictor}
-
-Prediktoriaus - korektoriaus metodas - tai integravimo metodas, kuris remiasi skaičiavimais atliktais keliuose senesniuse žingsniuose.
-Šiame darbe buvo implementuotas Adams-Bashforh metodo versija, kuri naudoja trijų prieš tai atliktų žingsnių duomenis.
-
-\begin{equation} \label{eq:pred}
-    P(x): x(t+h) = x(t) + hx'(t) +  h^2 \sum\limits_{i=1}^{k-1} {alpha_i f(t+[1-i]h)}
-\end{equation}
-
-\begin{equation} \label{eq:corr}
-    C(x): x(t+h) = x(t) + hx'(t) +  h^2 \sum\limits_{i=1}^{k-1} {beta_i f(t+[2-i]h)}
-\end{equation}
-
-
 \subsection{Vandens modelis}
 \label{sec:water}
 
@@ -40,13 +25,31 @@ Po vieną kiekviename atome bei vieną masės centre.
 Šios molekulės konfigūracijos parametrai:
 
 \begin{equation} \label{eq:water_conf}
-    r_{OH} = 0.957 \si{\angstrom} \\
-    r_{OM} = 0.15 \si{\angstrom} \\
-    \angle HOH = 104.5 \si{\degree}
+r_{OH} = 0.957 \si{\angstrom} \\
+r_{OM} = 0.15 \si{\angstrom} \\
+\angle HOH = 104.5 \si{\degree}
 \end{equation}
 
 
-\subsection{Pradinė sistemos būsena}
+\subsection{Integravimo metodas}
+
+
+\subsubsection{Prediktoriaus - korektoriaus metodas}
+\label{sec:predictor}
+
+Prediktoriaus - korektoriaus metodas - tai integravimo metodas, kuris remiasi skaičiavimais atliktais keliuose senesniuse žingsniuose.
+Šiame darbe buvo implementuotas Adams-Bashforh metodo versija, kuri naudoja trijų prieš tai atliktų žingsnių duomenis.
+
+\begin{equation} \label{eq:pred}
+    P(x): x(t+h) = x(t) + hx'(t) +  h^2 \sum\limits_{i=1}^{k-1} {{\alpha}_i f(t+[1-i]h)}
+\end{equation}
+
+\begin{equation} \label{eq:corr}
+    C(x): x(t+h) = x(t) + hx'(t) +  h^2 \sum\limits_{i=1}^{k-1} {{\beta}_i f(t+[2-i]h)}
+\end{equation}
+
+
+\subsubsection{Pradinė sistemos būsena}
 \label{sec:initial_state}
 
 Visa simuliacijos erdvė užpildoma molekulėmis su vartotojo įvestu atstumu tarp jų.
@@ -54,25 +57,50 @@ Tuo met visų molekulių masės centrams pseudo-atsitiktiniu būdu yra priskiria
 Tuo pačiu būdu priskiriamas kampinis greitis molekulės saveikų taškams.
 
 
-\subsection{Saveikų }
-\label{sec:}
+\subsubsection{Periodinės ribos}
+\label{sec:periodic_boundaries}
 
---- r cut-off/shifted force potentials
+Dažniausiai laikoma, kad modeliuojama sistema yra pakankamai toli nuo fizinių ribų kaip mėgintuvėlio sienelė ar skysčio paviršius.
+Taip pat dėl ribotų skaičiavimo resusrsų laikoma modeliuojamas tūris yra labai nedidelis.
+Kad simuliacija atitiktų realybę, naudojamos periodinių ribų sąlygą.
+Kiekviena dalelė išėjusi iš modelio erdvės yra gražinama į ją kitoje pusėje.
+Taip pat skaičiuojant sąveikas yra įvertinama ir kitoje erdvės pusėje esančių molekulių įtaka.
+Naudojant periodines ribas erdvės plotis turėtų būti didesnis už dalelės saveikos atstumą,
+kitu atveju dalelė pradės saveikauti pati su savimi.
 
---- Todo periodic boundaries
 
---- Ekvilibracija ir temperatura
-Dažniausiai modeliuojamos uždaros sistemos kurios nepraranda dalelių ir šilumos. Temperatura:
+\subsubsection{Kvaternijonai}
+\label{sec:quaternions}
+
+Implementacijoje sąveikos taškų pozicijų ir greičių skaičiavimams naudojami kvaternijonai.
+Jie leidžia išvengti lėtesnių trigonometrinių funkcijų naudojimo.
+
+
+
+\subsection{Matavimai}
+
+
+\subsubsection{Sistemos temperatūra}
+\label{sec:model_equilibration}
+
+Dažniausiai modeliuojamos uždaros sistemos kurios nepraranda dalelių ir šilumos.
+Tokiose sitemose reikia stebėti temperatūrą.
+Simuliacijos pradžioje potencinės energijos perteklius greitai virsta kinetine energija ir kyla temperatūra.
+Tokiu atveju taikoma ekvilibracija - sitemos temperatūros sumažinimas iki norimos, atitinkamai sumažinan visų dalelių kinetinę energiją.
 
 \begin{equation}
     T(t) = \sum\limits_{i=1}^N {\dfrac {m_i} {N_{f}k_{b}} v_i^2}
 \end{equation}
 
 
---- Gal dar apie rigid molekules
+\subsubsection{Vandeniliai ryšiai}
+\label{sec:hydrogen_bonds}
 
---- Kvaternijonai
+Pagrindinis matavimas, kuris leidžia spręsti apie poliarizuoto jėgos lauko taikymo efektyvumą,
+tai vandenilinių ryšiu skaičius tam tikroje temperatūroje.
+Pagal vartotojo įvestą maksimalią vandenilinio ryšio energiją, suskaičiuojami paskutiniu iteracijų ryšių skaičiaus vidurkiai.
+Vidurkiai turėtų būti pasiskirstę Gauso skirstiniu aplink reikšmę 4.
+Toks skaičius yra labiausiai tikėtinas, nes du vandens vandenilio atomai gali trauki kitų dviejų molekulių anglies atomus,
+o anglies atomas yra pajėgus susisieti su dviem vandenilio atomais.
 
---- Rotation matrix?
 
---- Hydrogen bond
