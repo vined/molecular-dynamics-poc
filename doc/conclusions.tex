@@ -1,3 +1,13 @@
-Išvados
+Tyrimo metu buvo įsigilinta į molekulinės dinamikos metodus ir jų praktinį taikymą.
+Taip pat implementuotas vandens modelis paremtas prediktoriaus - korektoriaus interavimo metodu,
+bet algoritmas nėra stabilus ir skaičiavimo trukmė trumpa.
+Atlikus šį tyrimą galima daryti tokias išvadas:
 
-Svarbiausios darbo išvados, rekomendacijos vystymui ir pritaikymui
+\begin{itemize}
+    \item Lennard-Jones potencialų skaičiavimo metodas labai jautrus \({\Delta}t\), dėl stiprios atstumimo jėgos peržengus ribą.
+        Todėl negalima naudoti optimalesnių metodų su kintamu \({\Delta}t\), ar Runge-Kuta tipo metodų.
+
+    \item Molekulėms su tvirtais ryšiais (kaip vandens TIP4P) reikia skaičiuoti kampinius greičius.
+        Tam tinkamiausias yra prediktoriaus - korektoriaus integravimo metodas, nes yra tikslesnis palyginus su Leapfrog tipo metodais
+        ir leidžia apskaičiuoti pozicijas ir greičius nenaudojant trigonometrinių funkcijų.
+\end{itemize}
